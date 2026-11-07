@@ -1,0 +1,49 @@
+# GoreeCloud Home Manager — Branding architecture and release gates
+
+**Status:** Development-stage source import. This document records inspected implementation boundaries, verified decisions, and outstanding acceptance checks. It is not a release approval.
+
+## Verified source baseline (November 7, 2026)
+
+| Responsibility | Current source evidence | Implication |
+| --- | --- | --- |
+| Home automation backend | Imported home-assistant/core branch master, upstream commit 74cf5a49c63ed8d4d87717844bf14f79c28c9cea | Core public APIs, integrations, and storage contracts should remain intact until migration tests prove otherwise |
+| Python package and runtime | pyproject.toml uses package name homeassistant and requires Python >=3.14.2; homeassistant/const.py uses APPLICATION_NAME = HomeAssistant | Do not casually rename internal packages or runtime constants |
+| Browser interface | homeassistant/components/frontend/manifest.json pins the external home-assistant-frontend==20261028.4 package | Core source alone cannot produce an independently GC UI-branded frontend; review the precise separately licensed frontend sources and build artifacts first |
+| Current product identity | Root README.rst, UPSTREAM_SOURCE.md, and SECURITY.md identify GoreeCloud Home Manager | Repository-level rebranding is done; runtime UI is still upstream |
+| License and provenance | Root LICENSE.md is Apache-2.0; upstream copyright and README preserved | Retain upstream authorship and third-party notices; independent branding does not imply sponsorship |
+| Automation | 19 original upstream workflow files are retained out of active workflow paths; inherited templates, funding, and agent guidance are similarly quarantined | Enable only individually reviewed GoreeCloud CI with narrowly scoped permissions |
+
+## GoreeCloud UI authority
+
+The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), not the imported upstream frontend. The active design-language standard and semantic tokens govern any future GoreeCloud-controlled screens. Stable Foundations v1.0.1 is scoped to semantic tokens, color, and browser-theme control; it does **not** confer stability on the rest of the experimental component workspace or certify this product.
+
+- Use **GoreeCloud Home Manager** as the full public product name, while keeping existing Home Assistant backend integration identifiers where needed for compatibility.
+- Reuse verified GC UI semantic tokens and theme behavior only after resolving the upstream frontend's independent build, licensing, packaging, and configuration interfaces.
+- Do not invent mandatory GoreeCloud brand colors. Design choices must retain semantic contrast, keyboard/assistive usability, reduced-motion options, and responsive behavior.
+- Inspect rendered login, onboarding, dashboards, automations, devices, integrations, settings, update/error/empty states, and mobile layouts before claiming a complete rebrand.
+- Third-party Home Assistant, Open Home Foundation, and device/vendor marks must be reviewed separately; do not imply endorsement.
+
+## Release gates
+
+| Gate | Acceptance evidence | Status |
+| --- | --- | --- |
+| Import provenance, license and source | Pinned upstream SHA, LICENSE, original README, matching GitHub tree | Verified at initial import |
+| Inherited automation containment | Zero upstream-active workflow/funding/agent configuration; import guard passing | Upstream quarantined; new guard and hosted CI pending |
+| Frontend architecture and GC UI compatibility | Exact upstream frontend package assessed, production-branded UI built with GC UI, visual screenshots and user flows validated | Open |
+| Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
+| Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
+| Functional integration and privacy | Secure self-hosted setup, device discovery consent, least privilege, data retention and restore, error handling verified | Open |
+| MIPS integration | GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh interoperability, GoreeCloud Identity authentication, and GC UI contracts implemented and tested where applicable | Open |
+| Release | Signed/verifiable artifacts as appropriate, rollback, deployment checks, onboarding, supported hardware and release approval | Open |
+
+**Testing scope:** tools/check_home_manager_import.py is a deterministic *static import invariant check*. It reads bounded local files only, makes no network requests, installs no packages, does not execute imported Home Assistant modules, and cannot establish absence of malicious code, vulnerability freedom, runtime functionality, or released visual quality.
+
+## Next highest-value development steps
+
+1. Inspect the exact home-assistant-frontend==20261028.4 source/package provenance, license, build scripts, API coupling, and upstream asset/trademark constraints; identify the smallest compatible GC UI integration boundary.
+2. Establish a supported Python 3.14.2+ isolated core test environment and capture baseline results before backend edits.
+3. Implement product-specific branding as a small, reviewable delta with functional/visual regression tests; avoid mass string replacements or breaking integration identifiers.
+4. Add controlled release CI only after reviewing the disabled upstream workflows and any needed secrets, publishing targets and permissions.
+5. Reconcile the canonical GoreeCloud/GoreeCloud-Github-Repositories.md *in place*, preserving its existing Drive file identity. A Markdown draft or GitHub issue is not a substitute for that update.
+
+No external service, household device, camera, user account, or home network was configured or accessed to complete this documentation.
