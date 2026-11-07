@@ -19,6 +19,7 @@ SPEC.loader.exec_module(guard)
 
 def create_fixture(root: Path) -> None:
     required = {
+        ".python-version": "3.14.10\n",
         "LICENSE.md": (
             "Apache License\nVersion 2.0, January 2004\n"
             "TERMS AND CONDITIONS FOR USE\n"
@@ -55,6 +56,7 @@ def create_fixture(root: Path) -> None:
             "name: safe\npermissions:\n  contents: read\n"
             "persist-credentials: false\n"
             "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
+            "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
         ),
     }
     for index in range(19):
@@ -83,7 +85,7 @@ class HomeManagerImportGuardTests(unittest.TestCase):
 
     def test_valid_import_fixture_passes(self) -> None:
         self.assertEqual(self.failures(), set())
-        self.assertEqual(len(guard.evaluate(self.root)), 13)
+        self.assertEqual(len(guard.evaluate(self.root)), 14)
 
     def test_goreecloud_cli_alias_must_preserve_upstream_entrypoint(self) -> None:
         p = self.root / "pyproject.toml"
@@ -105,6 +107,12 @@ class HomeManagerImportGuardTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertIn("goreecloud-cli-alias", self.failures())
+
+    def test_supported_python_pin_is_checked(self) -> None:
+        (self.root / ".python-version").write_text(
+            "3.12.3\n", encoding="utf-8"
+        )
+        self.assertIn("supported-python-source-pin", self.failures())
 
     def test_missing_license_fails_closed(self) -> None:
         (self.root / "LICENSE.md").unlink()

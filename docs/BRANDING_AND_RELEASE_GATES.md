@@ -33,7 +33,7 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 | Inherited automation containment | Original upstream automation quarantined; read-only checks and hosted CI pass | Verified as of baseline PR #2 |
 | Frontend architecture and GC UI compatibility | Exact upstream frontend package assessed, production-branded UI built with GC UI, visual screenshots and user flows validated | Open |
 | Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
-| Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
+| Supported Python syntax check | Pinned Python 3.14.10 hosted interpreter parses selected backend source and runs dependency-free tests | Hosted CI pending |\n| Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
 | Functional integration and privacy | Secure self-hosted setup, device discovery consent, least privilege, data retention and restore, error handling verified | Open |
 | MIPS integration | GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh interoperability, GoreeCloud Identity authentication, and GC UI contracts implemented and tested where applicable | Open |
 | Release | Signed/verifiable artifacts as appropriate, rollback, deployment checks, onboarding, supported hardware and release approval | Open |
