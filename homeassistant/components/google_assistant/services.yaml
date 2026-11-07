@@ -1,0 +1,6 @@
+request_sync:
+  fields:
+    agent_user_id:
+      selector:
+        text:
+reload:

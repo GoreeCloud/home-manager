@@ -1,0 +1,203 @@
+"""Weather component that handles meteorological data for your location."""
+
+from datetime import timedelta
+import logging
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import DOMAIN as HOMEASSISTANT_DOMAIN, HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.helpers.typing import ConfigType
+
+from .const import (
+    ATTR_CONDITION_CLASS,
+    ATTR_CONDITION_CLEAR_NIGHT,
+    ATTR_CONDITION_CLOUDY,
+    ATTR_CONDITION_EXCEPTIONAL,
+    ATTR_CONDITION_FOG,
+    ATTR_CONDITION_HAIL,
+    ATTR_CONDITION_LIGHTNING,
+    ATTR_CONDITION_LIGHTNING_RAINY,
+    ATTR_CONDITION_PARTLYCLOUDY,
+    ATTR_CONDITION_POURING,
+    ATTR_CONDITION_RAINY,
+    ATTR_CONDITION_SNOWY,
+    ATTR_CONDITION_SNOWY_RAINY,
+    ATTR_CONDITION_SUNNY,
+    ATTR_CONDITION_WINDY,
+    ATTR_CONDITION_WINDY_VARIANT,
+    ATTR_FORECAST_APPARENT_TEMP,
+    ATTR_FORECAST_CLOUD_COVERAGE,
+    ATTR_FORECAST_CONDITION,
+    ATTR_FORECAST_DEW_POINT,
+    ATTR_FORECAST_HUMIDITY,
+    ATTR_FORECAST_IS_DAYTIME,
+    ATTR_FORECAST_NATIVE_APPARENT_TEMP,
+    ATTR_FORECAST_NATIVE_DEW_POINT,
+    ATTR_FORECAST_NATIVE_PRECIPITATION,
+    ATTR_FORECAST_NATIVE_PRESSURE,
+    ATTR_FORECAST_NATIVE_TEMP,
+    ATTR_FORECAST_NATIVE_TEMP_LOW,
+    ATTR_FORECAST_NATIVE_WIND_GUST_SPEED,
+    ATTR_FORECAST_NATIVE_WIND_SPEED,
+    ATTR_FORECAST_PRECIPITATION,
+    ATTR_FORECAST_PRECIPITATION_PROBABILITY,
+    ATTR_FORECAST_PRESSURE,
+    ATTR_FORECAST_TEMP,
+    ATTR_FORECAST_TEMP_LOW,
+    ATTR_FORECAST_TIME,
+    ATTR_FORECAST_UV_INDEX,
+    ATTR_FORECAST_WIND_BEARING,
+    ATTR_FORECAST_WIND_GUST_SPEED,
+    ATTR_FORECAST_WIND_SPEED,
+    ATTR_WEATHER_APPARENT_TEMPERATURE,
+    ATTR_WEATHER_CLOUD_COVERAGE,
+    ATTR_WEATHER_DEW_POINT,
+    ATTR_WEATHER_HUMIDITY,
+    ATTR_WEATHER_OZONE,
+    ATTR_WEATHER_PRECIPITATION_UNIT,
+    ATTR_WEATHER_PRESSURE,
+    ATTR_WEATHER_PRESSURE_UNIT,
+    ATTR_WEATHER_TEMPERATURE,
+    ATTR_WEATHER_TEMPERATURE_UNIT,
+    ATTR_WEATHER_UV_INDEX,
+    ATTR_WEATHER_VISIBILITY,
+    ATTR_WEATHER_VISIBILITY_UNIT,
+    ATTR_WEATHER_WIND_BEARING,
+    ATTR_WEATHER_WIND_GUST_SPEED,
+    ATTR_WEATHER_WIND_SPEED,
+    ATTR_WEATHER_WIND_SPEED_UNIT,
+    DATA_COMPONENT,
+    DOMAIN,
+    INTENT_GET_WEATHER,
+    SERVICE_GET_FORECASTS,
+    UNIT_CONVERSIONS,
+    VALID_UNITS,
+    WeatherEntityFeature,
+    WeatherEntityStateAttribute,
+    WeatherService,
+    WeatherServiceArgument,
+)
+from .entity import (
+    CoordinatorWeatherEntity,
+    Forecast,
+    SingleCoordinatorWeatherEntity,
+    WeatherEntity,
+    WeatherEntityDescription,
+)
+from .services import async_setup_services
+from .websocket_api import async_setup as async_setup_ws_api
+
+_LOGGER = logging.getLogger(__name__)
+
+ENTITY_ID_FORMAT = DOMAIN + ".{}"
+PLATFORM_SCHEMA = cv.PLATFORM_SCHEMA
+PLATFORM_SCHEMA_BASE = cv.PLATFORM_SCHEMA_BASE
+SCAN_INTERVAL = timedelta(seconds=30)
+
+
+__all__ = [
+    "ATTR_CONDITION_CLASS",
+    "ATTR_CONDITION_CLEAR_NIGHT",
+    "ATTR_CONDITION_CLOUDY",
+    "ATTR_CONDITION_EXCEPTIONAL",
+    "ATTR_CONDITION_FOG",
+    "ATTR_CONDITION_HAIL",
+    "ATTR_CONDITION_LIGHTNING",
+    "ATTR_CONDITION_LIGHTNING_RAINY",
+    "ATTR_CONDITION_PARTLYCLOUDY",
+    "ATTR_CONDITION_POURING",
+    "ATTR_CONDITION_RAINY",
+    "ATTR_CONDITION_SNOWY",
+    "ATTR_CONDITION_SNOWY_RAINY",
+    "ATTR_CONDITION_SUNNY",
+    "ATTR_CONDITION_WINDY",
+    "ATTR_CONDITION_WINDY_VARIANT",
+    "ATTR_FORECAST_APPARENT_TEMP",
+    "ATTR_FORECAST_CLOUD_COVERAGE",
+    "ATTR_FORECAST_CONDITION",
+    "ATTR_FORECAST_DEW_POINT",
+    "ATTR_FORECAST_HUMIDITY",
+    "ATTR_FORECAST_IS_DAYTIME",
+    "ATTR_FORECAST_NATIVE_APPARENT_TEMP",
+    "ATTR_FORECAST_NATIVE_DEW_POINT",
+    "ATTR_FORECAST_NATIVE_PRECIPITATION",
+    "ATTR_FORECAST_NATIVE_PRESSURE",
+    "ATTR_FORECAST_NATIVE_TEMP",
+    "ATTR_FORECAST_NATIVE_TEMP_LOW",
+    "ATTR_FORECAST_NATIVE_WIND_GUST_SPEED",
+    "ATTR_FORECAST_NATIVE_WIND_SPEED",
+    "ATTR_FORECAST_PRECIPITATION",
+    "ATTR_FORECAST_PRECIPITATION_PROBABILITY",
+    "ATTR_FORECAST_PRESSURE",
+    "ATTR_FORECAST_TEMP",
+    "ATTR_FORECAST_TEMP_LOW",
+    "ATTR_FORECAST_TIME",
+    "ATTR_FORECAST_UV_INDEX",
+    "ATTR_FORECAST_WIND_BEARING",
+    "ATTR_FORECAST_WIND_GUST_SPEED",
+    "ATTR_FORECAST_WIND_SPEED",
+    "ATTR_WEATHER_APPARENT_TEMPERATURE",
+    "ATTR_WEATHER_CLOUD_COVERAGE",
+    "ATTR_WEATHER_DEW_POINT",
+    "ATTR_WEATHER_HUMIDITY",
+    "ATTR_WEATHER_OZONE",
+    "ATTR_WEATHER_PRECIPITATION_UNIT",
+    "ATTR_WEATHER_PRESSURE",
+    "ATTR_WEATHER_PRESSURE_UNIT",
+    "ATTR_WEATHER_TEMPERATURE",
+    "ATTR_WEATHER_TEMPERATURE_UNIT",
+    "ATTR_WEATHER_UV_INDEX",
+    "ATTR_WEATHER_VISIBILITY",
+    "ATTR_WEATHER_VISIBILITY_UNIT",
+    "ATTR_WEATHER_WIND_BEARING",
+    "ATTR_WEATHER_WIND_GUST_SPEED",
+    "ATTR_WEATHER_WIND_SPEED",
+    "ATTR_WEATHER_WIND_SPEED_UNIT",
+    "DOMAIN",
+    "ENTITY_ID_FORMAT",
+    "INTENT_GET_WEATHER",
+    "PLATFORM_SCHEMA",
+    "PLATFORM_SCHEMA_BASE",
+    "SERVICE_GET_FORECASTS",
+    "UNIT_CONVERSIONS",
+    "VALID_UNITS",
+    "CoordinatorWeatherEntity",
+    "Forecast",
+    "SingleCoordinatorWeatherEntity",
+    "WeatherEntity",
+    "WeatherEntityDescription",
+    "WeatherEntityFeature",
+    "WeatherEntityStateAttribute",
+    "WeatherService",
+    "WeatherServiceArgument",
+]
+
+# mypy: disallow-any-generics
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the weather component."""
+    component = hass.data[DATA_COMPONENT] = EntityComponent[WeatherEntity](
+        _LOGGER, DOMAIN, hass, SCAN_INTERVAL
+    )
+    async_setup_services(hass)
+    async_setup_ws_api(hass)
+    await component.async_setup(config)
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Set up a config entry."""
+    if not await hass.data[DATA_COMPONENT].async_setup_entry(entry):
+        raise ConfigEntryError(
+            translation_domain=HOMEASSISTANT_DOMAIN,
+            translation_key="platform_setup_failed",
+            translation_placeholders={"platform": entry.domain, "domain": DOMAIN},
+        )
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Unload a config entry."""
+    await hass.data[DATA_COMPONENT].async_unload_entry(entry)
