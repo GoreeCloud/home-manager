@@ -43,3 +43,10 @@ outstanding for this imported revision.
 
 **Security reports:** See `SECURITY.md <SECURITY.md>`_ for the independent
 GoreeCloud vulnerability-reporting process and development-stage caveats.
+
+**Command-line identity:** Installed package metadata now defines the
+GoreeCloud-branded command **goreecloud-home-manager** as an exact alias of
+the upstream **hass** entrypoint. Existing CLI arguments, Python modules,
+configuration formats, and integration identifiers remain unchanged.
+The alias has been validated statically but has not yet been installation-
+or runtime-tested with the required Python 3.14.2+ environment.

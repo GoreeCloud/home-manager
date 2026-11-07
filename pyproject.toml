@@ -98,6 +98,7 @@ dependencies = [
 
 [project.scripts]
 hass = "homeassistant.__main__:main"
+goreecloud-home-manager = "homeassistant.__main__:main"
 
 [tool.setuptools]
 include-package-data = true

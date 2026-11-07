@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import tomllib
 from pathlib import Path
 import sys
 from typing import Final
@@ -98,13 +99,30 @@ def evaluate(root: Path) -> list[dict[str, object]]:
     contains(
         "frontend-compatibility",
         "homeassistant/components/frontend/manifest.json",
-        ('"domain": "frontend"', '"home-assistant-frontend=='),
+        ('"domain": "frontend"', '"home-assistant-frontend==20261028.4"'),
     )
     contains(
         "application-identifier",
         "homeassistant/const.py",
         ('APPLICATION_NAME: Final = "HomeAssistant"',),
     )
+
+    try:
+        project = tomllib.loads(_read_text(root, "pyproject.toml"))["project"]
+        commands = project["scripts"]
+        upstream_entry = "homeassistant.__main__:main"
+        matching = (
+            commands.get("hass") == upstream_entry
+            and commands.get("goreecloud-home-manager") == upstream_entry
+        )
+        record(
+            "goreecloud-cli-alias",
+            matching,
+            "both commands target the same core entrypoint"
+            if matching else "branded and upstream entrypoints are missing or inconsistent",
+        )
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
+        record("goreecloud-cli-alias", False, f"invalid package script metadata: {exc}")
 
     workflows = root / ".github/workflows"
     if workflows.exists() and (workflows.is_symlink() or not workflows.is_dir()):
