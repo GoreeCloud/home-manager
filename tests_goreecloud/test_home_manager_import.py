@@ -41,6 +41,8 @@ def create_fixture(root: Path) -> None:
         "pyproject.toml": (
             '[project]\nname = "homeassistant"\n'
             'requires-python = ">=3.14.2"\n'
+            '[project.scripts]\nhass = "homeassistant.__main__:main"\n'
+            'goreecloud-home-manager = "homeassistant.__main__:main"\n'
         ),
         "homeassistant/components/frontend/manifest.json": (
             '{"domain": "frontend", "requirements": '
@@ -81,7 +83,28 @@ class HomeManagerImportGuardTests(unittest.TestCase):
 
     def test_valid_import_fixture_passes(self) -> None:
         self.assertEqual(self.failures(), set())
-        self.assertEqual(len(guard.evaluate(self.root)), 12)
+        self.assertEqual(len(guard.evaluate(self.root)), 13)
+
+    def test_goreecloud_cli_alias_must_preserve_upstream_entrypoint(self) -> None:
+        p = self.root / "pyproject.toml"
+        p.write_text(
+            p.read_text(encoding="utf-8").replace(
+                'goreecloud-home-manager = "homeassistant.__main__:main"',
+                'goreecloud-home-manager = "other.module:start"',
+            ),
+            encoding="utf-8",
+        )
+        self.assertIn("goreecloud-cli-alias", self.failures())
+
+    def test_removing_branded_cli_alias_is_detected(self) -> None:
+        p = self.root / "pyproject.toml"
+        p.write_text(
+            p.read_text(encoding="utf-8").replace(
+                'goreecloud-home-manager = "homeassistant.__main__:main"', ""
+            ),
+            encoding="utf-8",
+        )
+        self.assertIn("goreecloud-cli-alias", self.failures())
 
     def test_missing_license_fails_closed(self) -> None:
         (self.root / "LICENSE.md").unlink()

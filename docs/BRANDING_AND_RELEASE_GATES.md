@@ -9,6 +9,8 @@
 | Home automation backend | Imported home-assistant/core branch master, upstream commit 74cf5a49c63ed8d4d87717844bf14f79c28c9cea | Core public APIs, integrations, and storage contracts should remain intact until migration tests prove otherwise |
 | Python package and runtime | pyproject.toml uses package name homeassistant and requires Python >=3.14.2; homeassistant/const.py uses APPLICATION_NAME = HomeAssistant | Do not casually rename internal packages or runtime constants |
 | Browser interface | homeassistant/components/frontend/manifest.json pins the external home-assistant-frontend==20261028.4 package | Core source alone cannot produce an independently GC UI-branded frontend; review the precise separately licensed frontend sources and build artifacts first |
+| Verified frontend source tag | The home-assistant/frontend tag 20261028.4 resolves to a67b691a451e0b3fc469679b07158f963a61842c; its LICENSE.md is Apache-2.0; the upstream package.json declares the same project name | Tag and license identified, but no complete frontend source audit, build or GC UI integration has been performed |
+| Branded CLI source entrypoint | The package metadata defines goreecloud-home-manager as an alias to the unmodified hass entrypoint | Source-level command identity implemented; installation and runtime behavior still require Python 3.14.2+ verification |
 | Current product identity | Root README.rst, UPSTREAM_SOURCE.md, and SECURITY.md identify GoreeCloud Home Manager | Repository-level rebranding is done; runtime UI is still upstream |
 | License and provenance | Root LICENSE.md is Apache-2.0; upstream copyright and README preserved | Retain upstream authorship and third-party notices; independent branding does not imply sponsorship |
 | Automation | 19 original upstream workflow files are retained out of active workflow paths; inherited templates, funding, and agent guidance are similarly quarantined | Enable only individually reviewed GoreeCloud CI with narrowly scoped permissions |
@@ -28,7 +30,7 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 | Gate | Acceptance evidence | Status |
 | --- | --- | --- |
 | Import provenance, license and source | Pinned upstream SHA, LICENSE, original README, matching GitHub tree | Verified at initial import |
-| Inherited automation containment | Zero upstream-active workflow/funding/agent configuration; import guard passing | Upstream quarantined; new guard and hosted CI pending |
+| Inherited automation containment | Original upstream automation quarantined; read-only checks and hosted CI pass | Verified as of baseline PR #2 |
 | Frontend architecture and GC UI compatibility | Exact upstream frontend package assessed, production-branded UI built with GC UI, visual screenshots and user flows validated | Open |
 | Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
 | Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
