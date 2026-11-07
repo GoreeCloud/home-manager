@@ -102,6 +102,11 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         ('"domain": "frontend"', '"home-assistant-frontend==20261028.4"'),
     )
     contains(
+        "supported-python-source-pin",
+        ".python-version",
+        ("3.14.10",),
+    )
+    contains(
         "application-identifier",
         "homeassistant/const.py",
         ('APPLICATION_NAME: Final = "HomeAssistant"',),
@@ -155,7 +160,8 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         ".github/workflows/home-manager-import-checks.yml",
         ("permissions:\n  contents: read",
          "persist-credentials: false",
-         "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"),
+         "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+         "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c"),
     )
     conflicts = [
         p for p in BLOCKED_ACTIVE_PATHS
