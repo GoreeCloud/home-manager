@@ -16,7 +16,7 @@
 1. Created this provenance record and a GoreeCloud-facing root `README.rst`; original README retained as `UPSTREAM_README.rst`.
 2. Retained upstream Python package names, integration identifiers, and API behavior. This is a branded import baseline, **not** a fully rebranded runtime.
 3. Moved `.github/workflows/` to `.github/upstream-workflows-disabled/`. Imported workflows must not automatically execute against GoreeCloud credentials or publish upstream packages.
-4. Moved upstream `CODEOWNERS` and `.github/dependabot.yml`, where present, into `.github/upstream-config-disabled/` pending an ownership and dependency-update policy review.
+4. Moved upstream `CODEOWNERS`, dependency-update, funding, issue/PR template, Renovate, and Copilot configuration into `.github/upstream-config-disabled/`, and upstream AI agent instructions into `.github/upstream-agent-guidance-disabled/`, to prevent inherited automation and misleading project directions.
 5. Did not install dependencies, run source code, start services, or deploy. A clean-room build/test and security review are required before releases.
 
 ## Ongoing obligations

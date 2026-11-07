@@ -40,3 +40,6 @@ the source import.
 `UPSTREAM_README.rst <UPSTREAM_README.rst>`_ for the upstream baseline.
 Build, integration, deployment, and GoreeCloud UI acceptance tests remain
 outstanding for this imported revision.
+
+**Security reports:** See `SECURITY.md <SECURITY.md>`_ for the independent
+GoreeCloud vulnerability-reporting process and development-stage caveats.
