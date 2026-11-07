@@ -47,3 +47,30 @@ jobs:
         run: |
           python -m unittest discover -s tests_goreecloud -p "test_*.py" -q
           python tools/check_home_manager_import.py
+
+  package-metadata-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source with no retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Select upstream-pinned Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version-file: .python-version
+      - name: Download and verify pinned build backend
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/build-deps" "$RUNNER_TEMP/wheels"
+          python -m pip download --no-deps --only-binary=:all: setuptools==84.0.0 --dest "$RUNNER_TEMP/build-deps"
+          python -c 'import os,hashlib; from pathlib import Path; d=Path(os.environ["RUNNER_TEMP"])/"build-deps"; p=list(d.glob("setuptools-84.0.0-*.whl")); assert len(p)==1 and hashlib.sha256(p[0].read_bytes()).hexdigest()=="51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670", "setuptools pinned wheel hash mismatch"'
+      - name: Build wheel without installing Home Assistant dependencies
+        run: |
+          python -m pip install --no-index --no-deps --find-links "$RUNNER_TEMP/build-deps" setuptools==84.0.0
+          python -m pip wheel --no-build-isolation --no-deps --no-cache-dir --wheel-dir "$RUNNER_TEMP/wheels" .
+      - name: Inspect archive and dual command entrypoints without import
+        run: python tools/check_home_manager_wheel.py --wheel-dir "$RUNNER_TEMP/wheels"
