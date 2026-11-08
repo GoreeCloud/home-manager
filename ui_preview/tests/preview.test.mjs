@@ -109,6 +109,8 @@ test("view actions and appearance control are local and reversible",()=>{
   assert.match(app,/room\.addEventListener\("change",renderDevices\)/);
   assert.match(app,/theme\.set\(\{mode:event\.currentTarget\.value\}\)/);
   assert.match(app,/theme\.destroy\(\)/);
+  assert.match(app,/gc-preview-test/);
+  assert.match(app,/import\("\.\.\/tests\/browser-interactions\.mjs"\)/);
 });
 
 test("all device rows are created using DOM text nodes, not HTML injection",()=>{
