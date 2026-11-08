@@ -38,8 +38,9 @@ the source import.
 **Development and setup:** Review the upstream
 `documentation <https://www.home-assistant.io/docs/>`_ and the
 `UPSTREAM_README.rst <UPSTREAM_README.rst>`_ for the upstream baseline.
-Build, integration, deployment, and GoreeCloud UI acceptance tests remain
-outstanding for this imported revision.
+The source-only checks and a dependency-free package build and installation
+smoke passed on GitHub. Full runtime dependencies, backend integration,
+deployment, and GoreeCloud UI acceptance remain outstanding.
 
 **Security reports:** See `SECURITY.md <SECURITY.md>`_ for the independent
 GoreeCloud vulnerability-reporting process and development-stage caveats.
@@ -48,5 +49,8 @@ GoreeCloud vulnerability-reporting process and development-stage caveats.
 GoreeCloud-branded command **goreecloud-home-manager** as an exact alias of
 the upstream **hass** entrypoint. Existing CLI arguments, Python modules,
 configuration formats, and integration identifiers remain unchanged.
-The alias has been validated statically but has not yet been installation-
-or runtime-tested with the required Python 3.14.2+ environment.
+The alias has been verified in the built wheel and both generated launchers
+were checked after installing the wheel into an isolated Python 3.14.10
+environment without runtime dependencies. The commands themselves and the
+Home Assistant service have **not** been executed or functionally tested.
+See `release-gate evidence <docs/BRANDING_AND_RELEASE_GATES.md>`_.
