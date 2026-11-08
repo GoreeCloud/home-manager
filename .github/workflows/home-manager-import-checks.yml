@@ -546,3 +546,13 @@ jobs:
           print("PREVIEW BROWSER SMOKE PASS: rendered generated device rows and two screenshot files")
           print("Scope: synthetic one-page smoke only; no full visual acceptance or Home Assistant service")
           PY
+          mkdir -p ui_preview/screenshots
+          cp "$RUNNER_TEMP/home-manager-desktop.png" "$RUNNER_TEMP/home-manager-mobile.png" ui_preview/screenshots/
+      - name: Upload synthetic screenshots for human GC UI visual review
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: home-manager-gc-ui-concept-screenshots
+          path: ui_preview/screenshots/*.png
+          retention-days: 2
+          if-no-files-found: error
+          include-hidden-files: false
