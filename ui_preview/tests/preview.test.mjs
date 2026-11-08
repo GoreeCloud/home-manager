@@ -58,6 +58,8 @@ test("preview HTML exposes accessibility landmarks, live disclosure and four pag
   assert.match(html,/href="#content"/);
   assert.match(html,/<main id="content" tabindex="-1">/);
   assert.match(html,/aria-label="Mobile navigation"/);
+  assert.match(html,/class="mobile-brand"/);
+  assert.match(css,/\.mobile-brand \{display:flex/);
   assert.match(html,/aria-label="Main navigation"/);
   for(const section of ["overview","devices","automations","privacy"]){
     assert.match(html,new RegExp('id="page-'+section+'"'));
