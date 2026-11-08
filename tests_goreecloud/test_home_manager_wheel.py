@@ -108,7 +108,7 @@ class HomeManagerWheelGuardTests(unittest.TestCase):
         make_wheel(
             self.wheel,
             overrides={metadata: text.replace(
-                "Project-URL: Upstream Core Source, https://github.com/home-assistant/core\\n",
+                "Project-URL: Upstream Core Source, https://github.com/home-assistant/core\n",
                 "",
             )},
         )
