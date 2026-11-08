@@ -171,6 +171,14 @@ def evaluate(root: Path) -> list[dict[str, object]]:
          "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c",
          "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'"),
     )
+    contains(
+        "binary-only-core-dependency-plan",
+        ".github/workflows/home-manager-import-checks.yml",
+        ("--isolated install --dry-run --ignore-installed --only-binary=:all:",
+         "--index-url https://pypi.org/simple",
+         "core-deps-report.json",
+         "no installs"),
+    )
     conflicts = [
         p for p in BLOCKED_ACTIVE_PATHS
         if (root / p).exists() or (root / p).is_symlink()
