@@ -41,7 +41,7 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 | Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
 | Supported Python syntax check | Pinned Python 3.14.10 hosted interpreter compiles selected backend modules and runs source tests | Verified in PR #4 and postmerge CI |
 | Package metadata smoke | Manual-only hosted Python 3.14.10 PEP 517 build with hash-verified setuptools 84.0.0; built wheel licensing and dual entrypoints checked without executing Home Assistant | Verified in [workflow run 42416187883](https://github.com/GoreeCloud/home-manager/actions/runs/42416187883); not an installer or runtime test |
-| Branded packaging and isolated installation | Verify GoreeCloud development metadata, pinned upstream provenance, wheel installation without runtime dependencies, and both generated CLI launchers | Under review; not yet an application runtime test |
+| Branded packaging and isolated installation | GoreeCloud development metadata, upstream provenance, wheel installation in an isolated Python 3.14.10 environment and both generated CLI launchers | **Passed** in [PR #6 CI](https://github.com/GoreeCloud/home-manager/actions/runs/42509747839); full dependencies and service runtime still untested |
 | Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
 | Functional integration and privacy | Secure self-hosted setup, device discovery consent, least privilege, data retention and restore, error handling verified | Open |
 | MIPS integration | GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh interoperability, GoreeCloud Identity authentication, and GC UI contracts implemented and tested where applicable | Open |
@@ -53,12 +53,14 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 
 **Package build evidence (November 7, 2026):** The [manually dispatched hosted workflow](https://github.com/GoreeCloud/home-manager/actions/runs/42416187883) passed all three jobs and built a wheel with SHA-256 `b8d1469d5ceb890de6371b418545731f3ef964df8941718e970346805cd24a4f`; the inspector verified Apache-2.0 metadata, included license, and both console command names. This was neither a runtime service test nor a released distribution.
 
+**Installed package evidence (November 8, 2026):** [PR #6](https://github.com/GoreeCloud/home-manager/pull/6) merged GoreeCloud development-stage package metadata and the first-party/explicitly dispatched install-validation gate. Its [hosted run 42509747839](https://github.com/GoreeCloud/home-manager/actions/runs/42509747839) passed all three jobs; wheel SHA-256 `25e7ab68554376f513eaa9a0d84e78cd84a46632328c22261f633eaf696d6211`. The isolated virtual environment installed the wheel without runtime dependencies and verified two generated launchers; neither launcher or the home automation service was executed. The [post-merge main validation](https://github.com/GoreeCloud/home-manager/actions/runs/42509903897) passed both routine source jobs; its heavier packaging job was intentionally skipped.
+
 **Testing scope:** tools/check_home_manager_import.py is a deterministic *static import invariant check*. It reads bounded local files only, makes no network requests, installs no packages, does not execute imported Home Assistant modules, and cannot establish absence of malicious code, vulnerability freedom, runtime functionality, or released visual quality.
 
 ## Next highest-value development steps
 
 1. Inspect the exact home-assistant-frontend==20261028.4 source/package provenance, license, build scripts, API coupling, and upstream asset/trademark constraints; identify the smallest compatible GC UI integration boundary.
-2. After a supported-Python isolated wheel-install smoke passes, separately review runtime dependencies and run selected Home Assistant Core tests and functional regression smoke before backend edits.
+2. Review runtime dependency resolution on an isolated Python 3.14.10 runner and run selected Home Assistant Core tests and functional regression smoke before backend edits. The installed-wheel metadata gate is now verified but does not cover runtime dependencies.
 3. Implement product-specific branding as a small, reviewable delta with functional/visual regression tests; avoid mass string replacements or breaking integration identifiers.
 4. Add controlled release CI only after reviewing the disabled upstream workflows and any needed secrets, publishing targets and permissions.
 5. Reconcile the canonical GoreeCloud/GoreeCloud-Github-Repositories.md *in place*, preserving its existing Drive file identity. A Markdown draft or GitHub issue is not a substitute for that update.
