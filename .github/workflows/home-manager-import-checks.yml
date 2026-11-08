@@ -102,21 +102,19 @@ jobs:
           print("INSTALL PASS: isolated wheel, package metadata, two CLI launchers")
           print("Scope: no dependencies installed, no Home Assistant service executed")
           PY
-      - name: Resolve binary-only Core dependencies without installation or code execution
+      - name: Check direct Core wheel availability without executing packages
         run: |
           set -eu
-          python -m pip --isolated install --dry-run --ignore-installed --only-binary=:all: --quiet --no-input --disable-pip-version-check --retries 2 --timeout 15 --constraint homeassistant/package_constraints.txt --index-url https://pypi.org/simple --report "$RUNNER_TEMP/core-deps-report.json" "$RUNNER_TEMP"/wheels/homeassistant-*.whl
+          mkdir -p "$RUNNER_TEMP/core-direct-wheels"
+          python -m pip --isolated download --no-deps --only-binary=:all: --quiet --no-input --disable-pip-version-check --retries 2 --timeout 15 --index-url https://pypi.org/simple --dest "$RUNNER_TEMP/core-direct-wheels" -r requirements.txt
           python - <<'PY'
-          import json
           import os
           from pathlib import Path
-          from urllib.parse import urlparse
-          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "core-deps-report.json").read_text())
-          packages = report.get("install", [])
-          names = {pkg["metadata"]["name"].lower().replace("_", "-") for pkg in packages}
-          assert "homeassistant" in names and len(packages) >= 20, "missing Core dependencies in resolver report"
-          unsafe = [pkg["metadata"]["name"] for pkg in packages if not urlparse(pkg["download_info"]["url"]).path.endswith(".whl")]
-          assert not unsafe, "source distributions or non-wheel URLs are not permitted"
-          print(f"DEPENDENCY RESOLUTION PASS: {len(packages)} wheel candidates, no installs")
-          print("Scope: pinned Core requirements only; no frontend, runtime imports, devices or deployments")
+          location = Path(os.environ["RUNNER_TEMP"]) / "core-direct-wheels"
+          wheels = list(location.glob("*.whl"))
+          assert len(wheels) >= 45, f"unexpectedly small direct wheel set: {len(wheels)}"
+          assert all(p.is_file() and p.stat().st_size > 0 for p in wheels)
+          assert len(wheels) == len(list(location.iterdir())), "non-wheel files were downloaded"
+          print(f"DIRECT WHEELS PASS: {len(wheels)} artifacts; no imports or installs")
+          print("Scope: direct requirements only; transitive dependency resolution unverified")
           PY

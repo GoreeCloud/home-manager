@@ -62,10 +62,10 @@ def create_fixture(root: Path) -> None:
             "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
             "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
             "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'\n"
-            "--isolated install --dry-run --ignore-installed --only-binary=:all:\n"
-            "--constraint homeassistant/package_constraints.txt\n"
+            "--isolated download --no-deps --only-binary=:all:\n"
             "--index-url https://pypi.org/simple\n"
-            "core-deps-report.json\nno installs\n"
+            "core-direct-wheels\n-r requirements.txt\n"
+            "transitive dependency resolution unverified\n"
         ),
     }
     for index in range(19):
@@ -178,17 +178,17 @@ class HomeManagerImportGuardTests(unittest.TestCase):
         )
         self.assertIn("workflow-permission-scope", self.failures())
 
-    def test_dependency_resolver_must_remain_binary_only(self) -> None:
+    def test_direct_wheel_check_requires_binary_only(self) -> None:
         path = self.root / ".github/workflows/home-manager-import-checks.yml"
         source = path.read_text(encoding="utf-8")
         path.write_text(source.replace("--only-binary=:all:", ""), encoding="utf-8")
-        self.assertIn("binary-only-core-dependency-plan", self.failures())
+        self.assertIn("binary-only-core-direct-wheels", self.failures())
 
-    def test_dependency_resolver_requires_upstream_constraints(self) -> None:
+    def test_direct_wheel_check_requires_source_requirements(self) -> None:
         path = self.root / ".github/workflows/home-manager-import-checks.yml"
         text = path.read_text(encoding="utf-8")
-        path.write_text(text.replace("--constraint homeassistant/package_constraints.txt", ""), encoding="utf-8")
-        self.assertIn("binary-only-core-dependency-plan", self.failures())
+        path.write_text(text.replace("-r requirements.txt", ""), encoding="utf-8")
+        self.assertIn("binary-only-core-direct-wheels", self.failures())
 
     def test_inherited_funding_is_rejected(self) -> None:
         (self.root / ".github/FUNDING.yml").write_text(

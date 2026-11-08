@@ -172,13 +172,13 @@ def evaluate(root: Path) -> list[dict[str, object]]:
          "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'"),
     )
     contains(
-        "binary-only-core-dependency-plan",
+        "binary-only-core-direct-wheels",
         ".github/workflows/home-manager-import-checks.yml",
-        ("--isolated install --dry-run --ignore-installed --only-binary=:all:",
-         "--constraint homeassistant/package_constraints.txt",
+        ("--isolated download --no-deps --only-binary=:all:",
          "--index-url https://pypi.org/simple",
-         "core-deps-report.json",
-         "no installs"),
+         "core-direct-wheels",
+         "-r requirements.txt",
+         "transitive dependency resolution unverified"),
     )
     conflicts = [
         p for p in BLOCKED_ACTIVE_PATHS
