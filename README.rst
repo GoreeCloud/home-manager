@@ -45,6 +45,12 @@ deployment, and GoreeCloud UI acceptance remain outstanding.
 **Security reports:** See `SECURITY.md <SECURITY.md>`_ for the independent
 GoreeCloud vulnerability-reporting process and development-stage caveats.
 
+**Privacy, security, identity, and integration readiness:** The five GoreeCloud
+Mandatory Integrated Platform Systems (MIPS) have documented applicability and
+source-level review targets in `MIPS security boundaries
+<docs/MIPS_PRIVACY_SECURITY_BOUNDARIES.md>`_. Their runtime integration is still
+unimplemented and must not be described as approved or deployed.
+
 **Command-line identity:** Installed package metadata now defines the
 GoreeCloud-branded command **goreecloud-home-manager** as an exact alias of
 the upstream **hass** entrypoint. Existing CLI arguments, Python modules,
