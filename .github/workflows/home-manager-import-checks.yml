@@ -385,27 +385,27 @@ jobs:
       - name: Create private two-audio candidate overlay from original pins
         run: |
           python tools/stage_home_manager_resolution_candidate.py --root . --output-dir "$RUNNER_TEMP/core-resolution-candidate"
-      - name: Resolve complete candidate graph from binary metadata only
+      - name: Diagnose candidate dependency graph without source builds
         run: |
           set -eu
           python -m venv "$RUNNER_TEMP/core-solver"
           "$RUNNER_TEMP/core-solver/bin/python" -m pip install --no-index --no-deps --no-compile --no-cache-dir "$RUNNER_TEMP"/verified-solver/uv-0.13.6-*.whl
+          set +e
           UV_NO_CONFIG=1 UV_PYTHON_DOWNLOADS=never UV_NO_CACHE=1 HOME="$RUNNER_TEMP" timeout 160s "$RUNNER_TEMP/core-solver/bin/uv" pip compile \
             --python "$(command -v python)" --python-version 3.14.10 --no-config --no-cache --no-build \
             --index-url https://pypi.org/simple \
             --find-links "$RUNNER_TEMP/pyturbojpeg-wheel" \
             --output-file "$RUNNER_TEMP/core-candidate-lock.txt" \
-            "$RUNNER_TEMP/core-resolution-candidate/requirements.in"
-          python - <<'PY'
-          import os
-          from pathlib import Path
-          root = Path(os.environ["RUNNER_TEMP"])
-          content = (root / "core-candidate-lock.txt").read_text(encoding="utf-8").lower()
-          for name, version in (("pymicro-vad", "2.1.0"), ("pyspeex-noise", "2.0.1")):
-              assert f"{name}=={version}" in content, f"missing candidate: {name}"
-          assert "pyturbojpeg" in content and "1.8.3" in content
-          packages = sum(1 for line in content.splitlines() if "==" in line and not line.startswith("#"))
-          assert packages >= 56, "candidate transitive graph unexpectedly small"
-          print(f"UV CANDIDATE RESOLVE PASS: {packages} pinned lines with two reviewed audio candidates")
-          print("Scope: candidate metadata only; no Core dependency install, runtime or release")
-          PY
+            "$RUNNER_TEMP/core-resolution-candidate/requirements.in" \
+            > "$RUNNER_TEMP/core-candidate-solver.log" 2>&1
+          solver_status=$?
+          set -e
+          if ! python tools/assess_home_manager_resolution_diagnostic.py \
+              --status "$solver_status" \
+              --solver-log "$RUNNER_TEMP/core-candidate-solver.log" \
+              --lock-file "$RUNNER_TEMP/core-candidate-lock.txt" \
+              --report "$RUNNER_TEMP/core-candidate-diagnostic.json"; then
+            echo "Unexpected candidate solver failure; excerpt (no secrets in public PyPI only)" >&2
+            tail -n 25 "$RUNNER_TEMP/core-candidate-solver.log" | cut -c1-300 >&2
+            exit 1
+          fi
