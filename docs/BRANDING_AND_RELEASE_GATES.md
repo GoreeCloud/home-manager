@@ -21,6 +21,12 @@ The imported Core frontend manifest pins `home-assistant-frontend==20261028.4`. 
 
 The next compatible implementation boundary is a **separately pinned, independently built frontend**, with upstream licenses and other assets reviewed before any changes to the Core frontend requirement. The GC UI styling, identity, navigation, and UI states must be implemented and screenshot-reviewed on that frontend branch; do not substitute a renamed Python package or an unvalidated CSS injection for a complete runtime rebrand. Protect existing websocket/auth contracts, user configurations, Lovelace dashboards, and device integrations while a separate frontend is tested. Do not execute package install hooks or modified build scripts without source and dependency review.
 
+### Upstream frontend binary artifact evidence
+
+The separately packaged `home-assistant-frontend==20261028.4` release is listed on [PyPI](https://pypi.org/project/home-assistant-frontend/20261028.4/) with a single `py3-none-any` wheel (117,422,576 compressed bytes) and Apache-2.0 license metadata. The official wheel digest is `e5e59b82e63b288323d35886272f2e490ee62f6c7aaa2c56e7ef45e300d44757`. The upstream source at tag `20261028.4` defines a separate `hass_frontend` Python distribution package with a setuptools backend. Only the upstream project's files are being checked. The scoped CI job performs a no-dependency, binary-only wheel download and validates the exact archive without installing, importing, executing, or extracting frontend code.
+
+This is a **supply-chain provenance prerequisite**, not a GoreeCloud-compiled frontend. No assertion is made that this PyPI wheel is reproducible from the pinned Git SHA, that all embedded JavaScript dependencies and branding assets have been audited, or that authentication/UI compatibility is proven. A branded frontend still requires independent source review, a reproducible build, attribution/trademark review, compatibility tests and complete GC UI visual acceptance.
+
 ## GoreeCloud UI authority
 
 The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), not the imported upstream frontend. The active design-language standard and semantic tokens govern any future GoreeCloud-controlled screens. Stable Foundations v1.0.1 is scoped to semantic tokens, color, and browser-theme control; it does **not** confer stability on the rest of the experimental component workspace or certify this product.
@@ -38,6 +44,7 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 | Import provenance, license and source | Pinned upstream SHA, LICENSE, original README, matching GitHub tree | Verified at initial import |
 | Inherited automation containment | Original upstream automation quarantined; read-only checks and hosted CI pass | Verified as of baseline PR #2 |
 | Frontend architecture and GC UI compatibility | Exact upstream frontend package assessed, production-branded UI built with GC UI, visual screenshots and user flows validated | Open |
+| Pinned upstream frontend wheel provenance | PyPI binary wheel `20261028.4` checked against official SHA-256, distribution license/metadata, ZIP member safety, and bundled asset presence without import/extraction | CI review pending; a verified upstream wheel does not prove GC UI branding or frontend source-build equivalence |
 | Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
 | Supported Python syntax check | Pinned Python 3.14.10 hosted interpreter compiles selected backend modules and runs source tests | Verified in PR #4 and postmerge CI |
 | Package metadata smoke | Manual-only hosted Python 3.14.10 PEP 517 build with hash-verified setuptools 84.0.0; built wheel licensing and dual entrypoints checked without executing Home Assistant | Verified in [workflow run 42416187883](https://github.com/GoreeCloud/home-manager/actions/runs/42416187883); not an installer or runtime test |
