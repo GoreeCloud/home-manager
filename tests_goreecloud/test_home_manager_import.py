@@ -63,6 +63,7 @@ def create_fixture(root: Path) -> None:
             "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
             "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'\n"
             "--isolated install --dry-run --ignore-installed --only-binary=:all:\n"
+            "--constraint homeassistant/package_constraints.txt\n"
             "--index-url https://pypi.org/simple\n"
             "core-deps-report.json\nno installs\n"
         ),
@@ -181,6 +182,12 @@ class HomeManagerImportGuardTests(unittest.TestCase):
         path = self.root / ".github/workflows/home-manager-import-checks.yml"
         source = path.read_text(encoding="utf-8")
         path.write_text(source.replace("--only-binary=:all:", ""), encoding="utf-8")
+        self.assertIn("binary-only-core-dependency-plan", self.failures())
+
+    def test_dependency_resolver_requires_upstream_constraints(self) -> None:
+        path = self.root / ".github/workflows/home-manager-import-checks.yml"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace("--constraint homeassistant/package_constraints.txt", ""), encoding="utf-8")
         self.assertIn("binary-only-core-dependency-plan", self.failures())
 
     def test_inherited_funding_is_rejected(self) -> None:
