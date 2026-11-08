@@ -62,6 +62,9 @@ def create_fixture(root: Path) -> None:
             "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
             "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
             "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'\n"
+            "--isolated install --dry-run --ignore-installed --only-binary=:all:\n"
+            "--index-url https://pypi.org/simple\n"
+            "core-deps-report.json\nno installs\n"
         ),
     }
     for index in range(19):
@@ -90,7 +93,7 @@ class HomeManagerImportGuardTests(unittest.TestCase):
 
     def test_valid_import_fixture_passes(self) -> None:
         self.assertEqual(self.failures(), set())
-        self.assertEqual(len(guard.evaluate(self.root)), 15)
+        self.assertEqual(len(guard.evaluate(self.root)), 16)
 
     def test_goreecloud_cli_alias_must_preserve_upstream_entrypoint(self) -> None:
         p = self.root / "pyproject.toml"
@@ -173,6 +176,12 @@ class HomeManagerImportGuardTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertIn("workflow-permission-scope", self.failures())
+
+    def test_dependency_resolver_must_remain_binary_only(self) -> None:
+        path = self.root / ".github/workflows/home-manager-import-checks.yml"
+        source = path.read_text(encoding="utf-8")
+        path.write_text(source.replace("--only-binary=:all:", ""), encoding="utf-8")
+        self.assertIn("binary-only-core-dependency-plan", self.failures())
 
     def test_inherited_funding_is_rejected(self) -> None:
         (self.root / ".github/FUNDING.yml").write_text(
