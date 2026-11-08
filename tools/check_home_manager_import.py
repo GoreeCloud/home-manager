@@ -96,6 +96,13 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         "pyproject.toml",
         ('name = "homeassistant"', 'requires-python = ">=3.14.2"'),
     )
+    # Catch accidental partial-content uploads of this large upstream TOML file.
+    contains(
+        "upstream-python-tooling-preserved",
+        "pyproject.toml",
+        ("[tool.setuptools]", "[tool.pytest.ini_options]",
+         "[tool.ruff]", "[tool.ruff.lint.pydocstyle]"),
+    )
     contains(
         "frontend-compatibility",
         "homeassistant/components/frontend/manifest.json",
