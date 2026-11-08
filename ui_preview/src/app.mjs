@@ -105,3 +105,15 @@ document.getElementById("metric-active").textContent=String(summary.active);
 renderDevices();
 navigateTo("overview",{focus:false});
 window.addEventListener("pagehide",()=>theme.destroy(),{once:true});
+
+/* Test hook is inert outside the explicit localhost CI test query. The
+ * imported module contains only synthetic DOM interaction checks. */
+if(new URL(window.location.href).searchParams.get("gc-preview-test")==="1"){
+  import("../tests/browser-interactions.mjs").catch((error)=>{
+    document.documentElement.dataset.gcUiTest="fail";
+    const message=document.createElement("output");
+    message.id="gc-preview-test-output";
+    message.textContent="BROWSER INTERACTION FAIL: "+String(error?.message??"unknown").slice(0,180);
+    document.getElementById("content").append(message);
+  });
+}
