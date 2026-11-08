@@ -392,7 +392,7 @@ jobs:
           "$RUNNER_TEMP/core-solver/bin/python" -m pip install --no-index --no-deps --no-compile --no-cache-dir "$RUNNER_TEMP"/verified-solver/uv-0.13.6-*.whl
           UV_NO_CONFIG=1 UV_PYTHON_DOWNLOADS=never UV_NO_CACHE=1 HOME="$RUNNER_TEMP" timeout 160s "$RUNNER_TEMP/core-solver/bin/uv" pip compile \
             --python "$(command -v python)" --python-version 3.14.10 --no-config --no-cache --no-build \
-            --only-binary :all: --index-url https://pypi.org/simple \
+            --index-url https://pypi.org/simple \
             --find-links "$RUNNER_TEMP/pyturbojpeg-wheel" \
             --output-file "$RUNNER_TEMP/core-candidate-lock.txt" \
             "$RUNNER_TEMP/core-resolution-candidate/requirements.in"
