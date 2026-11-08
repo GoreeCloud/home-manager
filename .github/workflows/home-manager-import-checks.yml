@@ -128,3 +128,85 @@ jobs:
           python -m pip --isolated download --no-input --disable-pip-version-check --no-cache-dir --no-deps --only-binary=:all: --index-url https://pypi.org/simple --dest "$RUNNER_TEMP/upstream-frontend" 'home-assistant-frontend==20261028.4'
       - name: Verify PyPI pinned SHA-256, Apache-2.0 and inert wheel archive
         run: python tools/check_home_manager_frontend_artifact.py --wheel-dir "$RUNNER_TEMP/upstream-frontend"
+
+  assist-audio-abi3-probe:
+    # Two reviewed upstream candidate wheels; only first-party branch/manual runs.
+    # No Home Assistant service, device access, user audio, secrets or deployment.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'feat/assist-abi3-candidate-smoke-20261108')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout fixed-frame bridge without retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Use supported Python 3.14.10
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version-file: .python-version
+      - name: Download two pinned Linux ABI3 wheels without dependencies
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/assist-audio-abi3"
+          python -m pip --isolated download --no-deps --only-binary=:all: --no-input --disable-pip-version-check --no-cache-dir --index-url https://pypi.org/simple --dest "$RUNNER_TEMP/assist-audio-abi3" 'pymicro-vad==2.1.0' 'pyspeex-noise==2.0.1'
+      - name: Verify official PyPI digests and inspect inert ZIP archives
+        run: |
+          python - <<'PY'
+          from hashlib import sha256
+          import os
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+          wheel_dir = Path(os.environ["RUNNER_TEMP"]) / "assist-audio-abi3"
+          expected = {
+              "pymicro_vad-2.1.0-cp39-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "a99894b0eb58e713aceff2503ba371e3816801a30b3c60443bd39d22b8699e64",
+              "pyspeex_noise-2.0.1-cp39-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl": "bbcc365556bd184ab3da17276dbfadb21485dcd013496889006eb31ffb341c06",
+          }
+          actual = {p.name for p in wheel_dir.iterdir()}
+          assert actual == set(expected), f"unexpected wheels: {actual ^ set(expected)}"
+          for name, digest in expected.items():
+              wheel = wheel_dir / name
+              assert wheel.is_file() and not wheel.is_symlink() and wheel.stat().st_size < 1_000_000
+              assert sha256(wheel.read_bytes()).hexdigest() == digest, "pinned PyPI wheel SHA-256 mismatch"
+              with ZipFile(wheel) as archive:
+                  infos = archive.infolist()
+                  names = [item.filename for item in infos]
+                  assert len(infos) < 300 and len(set(names)) == len(names)
+                  assert all(
+                      item.filename and not item.filename.startswith("/")
+                      and "\\" not in item.filename
+                      and ".." not in PurePosixPath(item.filename).parts
+                      for item in infos
+                  ), "unsafe wheel path"
+                  assert archive.testzip() is None, "corrupted wheel member"
+          print("CANDIDATE WHEELS PASS: two exact reviewed Linux ABI3 archives")
+          PY
+      - name: Test fixed-frame Python API bridge with isolated compiled candidates
+        run: |
+          set -eu
+          python -m venv "$RUNNER_TEMP/assist-abi3-venv"
+          "$RUNNER_TEMP/assist-abi3-venv/bin/python" -m pip install --no-index --no-deps --no-compile --no-cache-dir "$RUNNER_TEMP"/assist-audio-abi3/*.whl
+          HOME="$RUNNER_TEMP" PYTHONNOUSERSITE=1 timeout 25s "$RUNNER_TEMP/assist-abi3-venv/bin/python" - <<'PY'
+          import importlib.util
+          from importlib import metadata
+          import math
+          from pathlib import Path
+          from pymicro_vad import MicroVad
+          from pyspeex_noise import AudioProcessor
+          assert metadata.version("pymicro-vad") == "2.1.0"
+          assert metadata.version("pyspeex-noise") == "2.0.1"
+          source = Path.cwd() / "homeassistant/components/assist_pipeline/audio_compat.py"
+          spec = importlib.util.spec_from_file_location("isolated_assist_compat", source)
+          assert spec and spec.loader
+          bridge = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(bridge)
+          vad, speex = MicroVad(), AudioProcessor(0, -15)
+          silent_10ms = bytes(320)
+          for _ in range(5):
+              score = bridge.process_vad_chunk(vad, silent_10ms)
+              assert isinstance(score, float) and math.isfinite(score) and -1.0 <= score <= 1.0
+              clean = bridge.process_speex_chunk(speex, silent_10ms)
+              assert isinstance(clean, bytes) and len(clean) == 320
+          print("ASSIST ABI3 PASS: Python 3.14, 5 synthetic 10ms frames, both native candidate APIs")
+          print("Scope: isolated Linux native smoke only; no real audio, Home Assistant service, device or deployment")
+          PY
