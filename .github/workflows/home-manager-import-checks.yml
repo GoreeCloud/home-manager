@@ -469,7 +469,7 @@ jobs:
   gc-ui-home-manager-preview:
     # A synthetic browser-only concept. First-party review/manual; zero accounts,
     # household hardware, network services, production credentials or releases.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108' || github.head_ref == 'test/ha-readonly-websocket-contract-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -502,7 +502,8 @@ jobs:
           node --version
           node --check ui_preview/src/app.mjs
           node --check ui_preview/src/model.mjs
-          node --test ui_preview/tests/preview.test.mjs
+          node --check ui_preview/src/hass-readonly-contract.mjs
+          node --test ui_preview/tests/*.test.mjs
       - name: Headless Chromium synthetic UI initial-render and responsive screenshot smoke
         run: |
           set -eu
