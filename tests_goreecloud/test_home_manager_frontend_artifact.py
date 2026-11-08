@@ -87,6 +87,14 @@ class FrontendArtifactTests(unittest.TestCase):
         other.write_bytes(self.wheel.read_bytes())
         self.assertTrue(any("named" in err for err in guard.inspect(other, verify_digest=False)))
 
+    def test_hosted_job_is_scoped_and_uses_binary_only_download(self) -> None:
+        workflow = SOURCE.parents[1] / ".github/workflows/home-manager-import-checks.yml"
+        content = workflow.read_text(encoding="utf-8")
+        self.assertIn("frontend-artifact-smoke:", content)
+        self.assertIn("github.head_ref == 'feat/frontend-wheel-provenance-20261108'", content)
+        self.assertIn("--no-deps --only-binary=:all:", content)
+        self.assertIn(guard.VERSION, content)
+
     def test_corrupted_archive_rejected(self) -> None:
         self.wheel.write_bytes(b"not a zip archive")
         self.assertTrue(self.failures())
