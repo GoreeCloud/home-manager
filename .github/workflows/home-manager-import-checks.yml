@@ -441,3 +441,28 @@ jobs:
           python-version-file: .python-version
       - name: Parse source files in memory using AST, never import PyRIC
         run: python tools/audit_pyric_python_ast.py --report "$RUNNER_TEMP/pyric-ast.json"
+  gc-ui-foundations-provenance:
+    # Only the scoped GC UI Foundations 1.0.1 archive; no npm or browser.
+    # First-party review branch or manual, no secrets, deployment or devices.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'ci/gc-ui-foundations-provenance-20261108')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout inert release-asset inspector without credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Fetch exact upstream Foundations public GitHub release asset only
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/gc-ui-foundations"
+          curl --fail --silent --show-error --location --retry 1 --max-redirs 5 --max-time 45 \
+            --proto '=https' --proto-redir '=https' \
+            --output "$RUNNER_TEMP/gc-ui-foundations/goreecloud-gc-ui-1.0.1.tgz" \
+            "https://github.com/GoreeCloud/gc-ui/releases/download/foundations-v1.0.1/goreecloud-gc-ui-1.0.1.tgz"
+      - name: Validate scoped official SHA, inert TAR contents and public API metadata
+        run: |
+          python3 tools/check_gc_ui_foundations_asset.py \
+            --archive "$RUNNER_TEMP/gc-ui-foundations/goreecloud-gc-ui-1.0.1.tgz" \
+            --report "$RUNNER_TEMP/gc-ui-foundations/asset-report.json"
