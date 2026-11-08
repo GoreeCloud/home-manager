@@ -469,7 +469,7 @@ jobs:
   gc-ui-home-manager-preview:
     # A synthetic browser-only concept. First-party review/manual; zero accounts,
     # household hardware, network services, production credentials or releases.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'feat/gc-ui-home-manager-preview-20261108')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -525,6 +525,14 @@ jobs:
           grep -q 'Everything shown is synthetic' "$RUNNER_TEMP/home-manager-dom.html"
           "$browser" --headless --no-sandbox --no-first-run \
             --disable-gpu --disable-dev-shm-usage --disable-background-networking \
+            --disable-extensions --disable-default-apps --virtual-time-budget=5000 \
+            --dump-dom "http://127.0.0.1:4173/ui_preview/?gc-preview-test=1" \
+            > "$RUNNER_TEMP/home-manager-interaction-dom.html" \
+            2>> "$RUNNER_TEMP/home-manager-chrome.log"
+          grep -q 'data-gc-ui-test="pass"' "$RUNNER_TEMP/home-manager-interaction-dom.html"
+          grep -q 'BROWSER INTERACTION PASS:' "$RUNNER_TEMP/home-manager-interaction-dom.html"
+          "$browser" --headless --no-sandbox --no-first-run \
+            --disable-gpu --disable-dev-shm-usage --disable-background-networking \
             --disable-extensions --disable-default-apps --window-size=1440,900 \
             --screenshot="$RUNNER_TEMP/home-manager-desktop.png" \
             "http://127.0.0.1:4173/ui_preview/" \
@@ -557,7 +565,7 @@ jobs:
               data=(root/name).read_bytes()
               assert 8000 < len(data) < 3_000_000
               assert data[:8]==b"\x89PNG\r\n\x1a\n"
-          print("PREVIEW BROWSER SMOKE PASS: generated device rows, confirmed dark theme and three PNG screenshots")
+          print("PREVIEW BROWSER SMOKE PASS: generated device rows, interactive DOM test, dark theme and three PNG screenshots")
           print("Scope: synthetic one-page smoke only; no full visual acceptance or Home Assistant service")
           PY
           mkdir -p ui_preview/screenshots
