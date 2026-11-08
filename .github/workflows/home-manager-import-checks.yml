@@ -105,7 +105,7 @@ jobs:
       - name: Resolve binary-only Core dependencies without installation or code execution
         run: |
           set -eu
-          python -m pip --isolated install --dry-run --ignore-installed --only-binary=:all: --quiet --no-input --disable-pip-version-check --retries 2 --timeout 15 --index-url https://pypi.org/simple --report "$RUNNER_TEMP/core-deps-report.json" "$RUNNER_TEMP"/wheels/homeassistant-*.whl
+          python -m pip --isolated install --dry-run --ignore-installed --only-binary=:all: --quiet --no-input --disable-pip-version-check --retries 2 --timeout 15 --constraint homeassistant/package_constraints.txt --index-url https://pypi.org/simple --report "$RUNNER_TEMP/core-deps-report.json" "$RUNNER_TEMP"/wheels/homeassistant-*.whl
           python - <<'PY'
           import json
           import os
