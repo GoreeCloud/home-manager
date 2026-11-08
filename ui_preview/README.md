@@ -22,6 +22,18 @@ Use a private disposable development environment, not a household server or devi
 
 The hosted review CI uses only the official GitHub asset, pinned checksum and built-in Node test runner. **No data leaves the browser preview:** CSP disables external connections and scripts, no fetch/WebSocket calls exist, devices and spaces are fictional, and theme preferences use session-only, nonpersistent storage. The preview does not request Bluetooth, camera, microphone, location or home automation permissions. There are no action buttons pretending to control real devices.
 
+## Home Assistant read-only protocol contract — tests only
+
+The source-only module **src/hass-readonly-contract.mjs** is not imported by the actual preview UI and does not create any browser WebSocket. Its explicitly simulated message flow matches the imported Python code:
+
+- **homeassistant/components/websocket_api/const.py**: endpoint path **/api/websocket**.
+- **homeassistant/components/websocket_api/auth.py**: server **auth_required**, client **auth** with short-lived in-memory **access_token**, server **auth_ok**/**auth_invalid**.
+- **homeassistant/components/websocket_api/commands.py**: authenticated client **get_states** with an integer request ID and matching **result** response.
+
+The fail-closed contract accepts at most 32 explicitly allowlisted entity IDs, recognizes only the authentication and read-only state request, rejects out-of-order, malformed or oversized responses, drops credentials after sending, and projects selected states to **entity_id** and **state** only (discarding attributes, coordinates, contexts and timestamps). Its synthetic tests explicitly refuse permission errors, unexpected event messages, malformed state values, duplicate IDs and stale responses. Test with **node --test ui_preview/tests/hass-readonly-contract.test.mjs**.
+
+**Important privacy limitation:** the upstream **get_states** command sends *all entities permitted by Home Assistant authorization* before our local projection. Client-side filtering **does not** meet a strict GoreeShield data-minimization boundary, prevent authorized sensitive device states from reaching the browser, or grant a safe production path. A future consent-reviewed, server-side resource filter and/or dedicated constrained API is needed; do not run this module against a household instance or enter credentials. HA frontend auth/session, rate limits, origin/TLS checks, incremental subscriptions, error handling, UI permissions and real integration remain entirely untested and out of scope.
+
 ## Product integration and release work still required
 
 This page is **not** wired to the Home Assistant frontend serving code or its hass_frontend package. The upstream separate frontend remains pinned at version 20261028.4; the Home Assistant backend, manifests, auth, WebSockets, onboarding, integrations and settings have not been substituted, renamed or deployed. A compatible branded frontend must be built from reviewed upstream source, retaining license/trademark attribution and actual API contracts. Follow screenshot-led review across desktop/mobile, light/dark/forced-color, RTL, keyboard, screen readers, and focus/errors/empty states before declaring visual acceptance.
