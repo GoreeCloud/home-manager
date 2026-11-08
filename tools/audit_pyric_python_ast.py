@@ -27,6 +27,55 @@ CAPABILITY_MODULES = frozenset({
     "socket", "fcntl", "subprocess", "ctypes", "os", "pwd", "grp", "signal",
 })
 
+# Target specific Linux network, process and privilege entrypoints. AST matches
+# identify syntax only, not invocation reachability, taint flow or safe behavior.
+CAPABILITY_CALLS = frozenset({
+    "socket.socket", "socket.fromfd", "socket.socketpair",
+    "fcntl.ioctl", "fcntl.fcntl",
+    "subprocess.Popen", "subprocess.run", "subprocess.call",
+    "subprocess.check_call", "subprocess.check_output",
+    "os.system", "os.popen", "os.setuid", "os.seteuid",
+    "os.setgid", "os.setegid", "os.chmod", "os.chown",
+    "ctypes.CDLL", "ctypes.PyDLL", "ctypes.cdll.LoadLibrary",
+})
+
+
+def inspect_static_call_sites(tree: ast.AST) -> dict[str, list[int]]:
+    """Conservatively record direct alias-resolved risky calls, no execution.
+
+    Does not resolve assignments, getattr, monkeypatches or dynamic imports.
+    The list is for manual review only, not a complete source-security audit.
+    """
+    aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for item in node.names:
+                root = item.name.split(".", 1)[0]
+                if root in CAPABILITY_MODULES:
+                    aliases[item.asname or root] = item.name
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            root = node.module.split(".", 1)[0]
+            if root in CAPABILITY_MODULES:
+                for item in node.names:
+                    aliases[item.asname or item.name] = node.module + "." + item.name
+
+    def dotted_name(node: ast.expr) -> str | None:
+        if isinstance(node, ast.Name):
+            return aliases.get(node.id)
+        if isinstance(node, ast.Attribute):
+            parent = dotted_name(node.value)
+            return parent + "." + node.attr if parent else None
+        return None
+
+    result: dict[str, list[int]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            name = dotted_name(node.func)
+            if name in CAPABILITY_CALLS:
+                result.setdefault(name, []).append(node.lineno)
+    return {name: sorted(lines) for name, lines in sorted(result.items())}
+
+
 
 def analyze_archive(content: bytes, *, check_hash: bool = True) -> dict[str, object]:
     """Inspect all bounded Python source text after the inert TAR preflight."""
@@ -36,6 +85,7 @@ def analyze_archive(content: bytes, *, check_hash: bool = True) -> dict[str, obj
     syntax_errors: list[str] = []
     sensitive_imports: set[str] = set()
     dynamic_call_sites: dict[str, int] = {"eval": 0, "exec": 0, "__import__": 0}
+    capability_sites: dict[str, list[str]] = {}
     with tarfile.open(fileobj=BytesIO(content), mode="r:gz") as archive:
         for member in archive:
             name = member.name
@@ -67,6 +117,9 @@ def analyze_archive(content: bytes, *, check_hash: bool = True) -> dict[str, obj
             except (SyntaxError, UnicodeError, LookupError):
                 syntax_errors.append(relative)
                 continue
+            for call, linenos in inspect_static_call_sites(tree).items():
+                examples = capability_sites.setdefault(call, [])
+                examples.extend(f"{relative}:{line}" for line in linenos)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     sensitive_imports.update(
@@ -89,6 +142,11 @@ def analyze_archive(content: bytes, *, check_hash: bool = True) -> dict[str, obj
         "python_syntax_errors": sorted(syntax_errors),
         "sensitive_module_import_names_observed": sorted(sensitive_imports),
         "dynamic_call_syntax_counts": dynamic_call_sites,
+        "potential_capability_call_sites": {
+            name: {"count": len(sites), "examples": sorted(sites)[:10]}
+            for name, sites in sorted(capability_sites.items())
+        },
+        "capability_scan_limitations": "direct import aliases and syntactic calls only; manual review required",
         "source_executed": False,
         "wireless_devices_accessed": False,
         "GPL_source_notice": True,
@@ -118,6 +176,8 @@ def main(argv: list[str] | None = None) -> int:
     for filename in report["python_syntax_errors"]:
         print("PYRIC SYNTAX GAP: " + filename)
     print("Import names requiring security review: " + ", ".join(report["sensitive_module_import_names_observed"]))
+    for name, item in report["potential_capability_call_sites"].items():
+        print(f"PYRIC POTENTIAL CAPABILITY: {name}: {item['count']} static call sites")
     print("RELEASE BLOCKED: AST parsing is not import/runtime, GPL or security clearance; no device access")
     return 0
 
