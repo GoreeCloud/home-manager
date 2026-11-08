@@ -409,3 +409,17 @@ jobs:
             tail -n 25 "$RUNNER_TEMP/core-candidate-solver.log" | cut -c1-300 >&2
             exit 1
           fi
+  pyric-source-provenance:
+    # Strictly inert inspection of 2016 Linux wireless-control source.
+    # No extracted/imported/executed package files; no device permissions.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'ci/pyric-source-provenance-20261108')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout read-only inspector with no retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Inspect original PyRIC PyPI archive and GPL notice, no extraction
+        run: python3 tools/inspect_pyric_sdist.py --report "$RUNNER_TEMP/pyric-source-report.json"
