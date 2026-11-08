@@ -21,6 +21,13 @@ def make_wheel(path: Path, *, overrides: dict[str, str | None] | None = None) ->
         prefix + "METADATA": (
             "Metadata-Version: 2.4\nName: homeassistant\nVersion: 2026.11.0\n"
             "License-Expression: Apache-2.0\n"
+            "Summary: GoreeCloud Home Manager development import of Home Assistant Core.\n"
+            "Classifier: Development Status :: 3 - Alpha\n"
+            "Project-URL: Homepage, https://github.com/GoreeCloud/home-manager\n"
+            "Project-URL: Source Code, https://github.com/GoreeCloud/home-manager\n"
+            "Project-URL: Bug Reports, https://github.com/GoreeCloud/home-manager/issues\n"
+            "Project-URL: Upstream Core Source, https://github.com/home-assistant/core\n"
+            "Project-URL: Upstream Frontend Source, https://github.com/home-assistant/frontend\n"
         ),
         prefix + "entry_points.txt": (
             "[console_scripts]\nhass = homeassistant.__main__:main\n"
@@ -80,6 +87,32 @@ class HomeManagerWheelGuardTests(unittest.TestCase):
             },
         )
         self.assertTrue(any("Apache" in s for s in guard.inspect(self.wheel)))
+
+    def test_stable_maturity_claim_is_rejected(self) -> None:
+        metadata = "homeassistant-2026.11.0.dist-info/METADATA"
+        with ZipFile(self.wheel) as archive:
+            text = archive.read(metadata).decode("utf-8")
+        make_wheel(
+            self.wheel,
+            overrides={metadata: text.replace(
+                "Development Status :: 3 - Alpha",
+                "Development Status :: 5 - Production/Stable",
+            )},
+        )
+        self.assertTrue(any("maturity" in problem for problem in guard.inspect(self.wheel)))
+
+    def test_missing_upstream_provenance_url_is_rejected(self) -> None:
+        metadata = "homeassistant-2026.11.0.dist-info/METADATA"
+        with ZipFile(self.wheel) as archive:
+            text = archive.read(metadata).decode("utf-8")
+        make_wheel(
+            self.wheel,
+            overrides={metadata: text.replace(
+                "Project-URL: Upstream Core Source, https://github.com/home-assistant/core\\n",
+                "",
+            )},
+        )
+        self.assertTrue(any("URL" in problem for problem in guard.inspect(self.wheel)))
 
     def test_member_path_traversal_is_rejected(self) -> None:
         make_wheel(self.wheel, overrides={"../../outside.txt": "invalid\n"})
