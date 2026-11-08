@@ -127,7 +127,7 @@ class PinnedPyTurboJPEGSourceGuardTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/home-manager-import-checks.yml").read_text()
         self.assertIn("pyturbojpeg-sdist-provenance:", workflow)
         self.assertIn("github.head_ref == 'ci/pyturbojpeg-sdist-provenance-20261108'", workflow)
-        self.assertIn("python tools/check_pyturbojpeg_sdist.py", workflow)
+        self.assertIn("python3 tools/check_pyturbojpeg_sdist.py", workflow)
 
 
 if __name__ == "__main__":
