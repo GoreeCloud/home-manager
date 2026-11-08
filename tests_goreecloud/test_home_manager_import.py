@@ -57,6 +57,7 @@ def create_fixture(root: Path) -> None:
             "persist-credentials: false\n"
             "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
             "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
+            "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'\n"
         ),
     }
     for index in range(19):
@@ -148,6 +149,18 @@ class HomeManagerImportGuardTests(unittest.TestCase):
     def test_unscoped_workflow_is_detected(self) -> None:
         (self.root / ".github/workflows/home-manager-import-checks.yml").write_text(
             "on: workflow_run\npermissions: write-all\n", encoding="utf-8"
+        )
+        self.assertIn("workflow-permission-scope", self.failures())
+
+    def test_untrusted_fork_packaging_is_rejected(self) -> None:
+        path = self.root / ".github/workflows/home-manager-import-checks.yml"
+        source = path.read_text(encoding="utf-8")
+        path.write_text(
+            source.replace(
+                "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'",
+                "github.event.pull_request.head.repo.full_name == 'untrusted/other'",
+            ),
+            encoding="utf-8",
         )
         self.assertIn("workflow-permission-scope", self.failures())
 
