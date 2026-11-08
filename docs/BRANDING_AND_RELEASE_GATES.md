@@ -27,6 +27,14 @@ The separately packaged `home-assistant-frontend==20261028.4` release is listed 
 
 This is a **supply-chain provenance prerequisite**, not a GoreeCloud-compiled frontend. No assertion is made that this PyPI wheel is reproducible from the pinned Git SHA, that all embedded JavaScript dependencies and branding assets have been audited, or that authentication/UI compatibility is proven. A branded frontend still requires independent source review, a reproducible build, attribution/trademark review, compatibility tests and complete GC UI visual acceptance.
 
+### Assist audio native-library compatibility (November 8, 2026)
+
+A source-level review of `homeassistant/components/assist_pipeline/audio_enhancer.py` found **two** independent pinned dependency problems. The imported Assist pipeline calls `MicroVad.Process10ms(audio)` and `AudioProcessor.Process10ms(audio).audio`. The upstream-generated `requirements.txt`, `requirements_all.txt`, `homeassistant/package_constraints.txt` and Assist manifest pin `pymicro-vad==1.0.1` and `pyspeex-noise==1.0.2`. The former lacks CPython 3.14 wheels on PyPI; the latter publishes only a source distribution. The resulting direct-wheel failure is therefore not a single-package problem.
+
+Upstream `pymicro-vad==2.1.0` (Apache) and `pyspeex-noise==2.0.1` (MIT) publish Linux x86-64 and ARM64 `cp39-abi3` wheels. **Their Python APIs are different:** `MicroVad.process_10ms(audio)` replaces the legacy capitalized method; `AudioProcessor.process_10ms(audio)` returns **bytes**, unlike the legacy `.Process10ms(audio).audio` shape. A blind pin change would break Assist; those releases are potential **Linux-specific candidates**, not approved all-platform drop-ins.
+
+The reviewable `audio_compat.py` bridge retains both recognized API shapes without touching current pins. Dependency-free synthetic tests verify the return-value handling, modern/legacy dispatch and missing-method failure paths; a Python 3.14 syntax check covers the actual consumer. These checks **do not execute third-party native libraries or simulate live audio accuracy**. Actual candidate version adoption still requires source/dependency/security review, exact wheel and license verification, supported-platform checks, real 10 ms audio behavior tests, and consistent regeneration of all four version-pin locations. Do not claim full Python 3.14 dependency resolution based on this bridge.
+
 ## GoreeCloud UI authority
 
 The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), not the imported upstream frontend. The active design-language standard and semantic tokens govern any future GoreeCloud-controlled screens. Stable Foundations v1.0.1 is scoped to semantic tokens, color, and browser-theme control; it does **not** confer stability on the rest of the experimental component workspace or certify this product.

@@ -8,6 +8,7 @@ from typing import override
 from pymicro_vad import MicroVad
 from pyspeex_noise import AudioProcessor
 
+from .audio_compat import process_speex_chunk, process_vad_chunk
 from .const import BYTES_PER_CHUNK
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,11 +86,11 @@ class MicroVadSpeexEnhancer(AudioEnhancer):
 
         if self.vad is not None:
             # Run VAD
-            speech_probability = self.vad.Process10ms(audio)
+            speech_probability = process_vad_chunk(self.vad, audio)
 
         if self.audio_processor is not None:
             # Run noise suppression and auto gain
-            audio = self.audio_processor.Process10ms(audio).audio
+            audio = process_speex_chunk(self.audio_processor, audio)
 
         return EnhancedAudioChunk(
             audio=audio,

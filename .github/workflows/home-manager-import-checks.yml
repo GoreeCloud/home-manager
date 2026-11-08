@@ -42,7 +42,9 @@ jobs:
         run: |
           python -c 'import sys; from pathlib import Path; v=Path(".python-version").read_text().strip(); assert v == "3.14.10" and sys.version_info[:3] == (3,14,10), (v, sys.version)'
       - name: Compile selected backend modules without importing them
-        run: python -m py_compile homeassistant/__main__.py homeassistant/const.py
+        run: |
+          python -m py_compile homeassistant/__main__.py homeassistant/const.py
+          python -m py_compile homeassistant/components/assist_pipeline/audio_enhancer.py homeassistant/components/assist_pipeline/audio_compat.py
       - name: Recheck dependency-free imported-source assertions
         run: |
           python -m unittest discover -s tests_goreecloud -p "test_*.py" -q
