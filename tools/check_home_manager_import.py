@@ -96,6 +96,13 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         "pyproject.toml",
         ('name = "homeassistant"', 'requires-python = ">=3.14.2"'),
     )
+    # Catch accidental partial-content uploads of this large upstream TOML file.
+    contains(
+        "upstream-python-tooling-preserved",
+        "pyproject.toml",
+        ("[tool.setuptools]", "[tool.pytest.ini_options]",
+         "[tool.ruff]", "[tool.ruff.lint.pydocstyle]"),
+    )
     contains(
         "frontend-compatibility",
         "homeassistant/components/frontend/manifest.json",
@@ -161,7 +168,8 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         ("permissions:\n  contents: read",
          "persist-credentials: false",
          "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
-         "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c"),
+         "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c",
+         "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'"),
     )
     conflicts = [
         p for p in BLOCKED_ACTIVE_PATHS

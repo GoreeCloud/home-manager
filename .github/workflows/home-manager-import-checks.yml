@@ -49,7 +49,9 @@ jobs:
           python tools/check_home_manager_import.py
 
   package-metadata-smoke:
-    if: github.event_name == 'workflow_dispatch'
+    # Only run source packaging for manually dispatched jobs or first-party branches.
+    # Never execute unreviewed fork changes as build backend code.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -74,3 +76,29 @@ jobs:
           python -m pip wheel --no-build-isolation --no-deps --no-cache-dir --wheel-dir "$RUNNER_TEMP/wheels" .
       - name: Inspect archive and dual command entrypoints without import
         run: python tools/check_home_manager_wheel.py --wheel-dir "$RUNNER_TEMP/wheels"
+      - name: Verify isolated installation and generated CLI launchers
+        run: |
+          set -eu
+          python -m venv "$RUNNER_TEMP/home-manager-install"
+          "$RUNNER_TEMP/home-manager-install/bin/python" -m pip install --disable-pip-version-check --no-index --no-deps --no-compile --no-cache-dir "$RUNNER_TEMP"/wheels/homeassistant-*.whl
+          "$RUNNER_TEMP/home-manager-install/bin/python" - <<'PY'
+          from importlib import metadata
+          from pathlib import Path
+          import sys
+          dist = metadata.distribution("homeassistant")
+          expected = "homeassistant.__main__:main"
+          assert dist.version == "2026.11.0"
+          assert dist.metadata["Summary"] == "GoreeCloud Home Manager development import of Home Assistant Core."
+          assert dist.metadata["License-Expression"] == "Apache-2.0"
+          names = {item.name: item.value for item in dist.entry_points if item.group == "console_scripts"}
+          assert names.get("hass") == names.get("goreecloud-home-manager") == expected
+          assert (Path(dist.locate_file("homeassistant/__main__.py"))).is_file()
+          for name in ("hass", "goreecloud-home-manager"):
+              launcher = Path(sys.executable).with_name(name)
+              assert launcher.is_file() and launcher.stat().st_mode & 0o111
+              first_line = launcher.open(encoding="utf-8").readline().strip()
+              assert first_line.startswith("#!") and "home-manager-install" in first_line
+          assert "homeassistant" not in sys.modules, "upstream code must not be imported by this smoke test"
+          print("INSTALL PASS: isolated wheel, package metadata, two CLI launchers")
+          print("Scope: no dependencies installed, no Home Assistant service executed")
+          PY

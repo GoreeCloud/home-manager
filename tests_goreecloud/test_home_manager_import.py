@@ -44,6 +44,10 @@ def create_fixture(root: Path) -> None:
             'requires-python = ">=3.14.2"\n'
             '[project.scripts]\nhass = "homeassistant.__main__:main"\n'
             'goreecloud-home-manager = "homeassistant.__main__:main"\n'
+            '[tool.setuptools]\n'
+            '[tool.pytest.ini_options]\n'
+            '[tool.ruff]\n'
+            '[tool.ruff.lint.pydocstyle]\n'
         ),
         "homeassistant/components/frontend/manifest.json": (
             '{"domain": "frontend", "requirements": '
@@ -57,6 +61,7 @@ def create_fixture(root: Path) -> None:
             "persist-credentials: false\n"
             "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n"
             "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c\n"
+            "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'\n"
         ),
     }
     for index in range(19):
@@ -85,7 +90,7 @@ class HomeManagerImportGuardTests(unittest.TestCase):
 
     def test_valid_import_fixture_passes(self) -> None:
         self.assertEqual(self.failures(), set())
-        self.assertEqual(len(guard.evaluate(self.root)), 14)
+        self.assertEqual(len(guard.evaluate(self.root)), 15)
 
     def test_goreecloud_cli_alias_must_preserve_upstream_entrypoint(self) -> None:
         p = self.root / "pyproject.toml"
@@ -128,6 +133,12 @@ class HomeManagerImportGuardTests(unittest.TestCase):
         )
         self.assertIn("upstream-provenance", self.failures())
 
+    def test_truncated_python_tooling_configuration_is_rejected(self) -> None:
+        p = self.root / "pyproject.toml"
+        source = p.read_text(encoding="utf-8")
+        p.write_text(source.split("[tool.pytest.ini_options]")[0], encoding="utf-8")
+        self.assertIn("upstream-python-tooling-preserved", self.failures())
+
     def test_frontend_pin_regression_is_detected(self) -> None:
         (self.root / "homeassistant/components/frontend/manifest.json").write_text(
             '{"domain": "frontend", "requirements": ["unbounded-frontend"]}',
@@ -148,6 +159,18 @@ class HomeManagerImportGuardTests(unittest.TestCase):
     def test_unscoped_workflow_is_detected(self) -> None:
         (self.root / ".github/workflows/home-manager-import-checks.yml").write_text(
             "on: workflow_run\npermissions: write-all\n", encoding="utf-8"
+        )
+        self.assertIn("workflow-permission-scope", self.failures())
+
+    def test_untrusted_fork_packaging_is_rejected(self) -> None:
+        path = self.root / ".github/workflows/home-manager-import-checks.yml"
+        source = path.read_text(encoding="utf-8")
+        path.write_text(
+            source.replace(
+                "github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'",
+                "github.event.pull_request.head.repo.full_name == 'untrusted/other'",
+            ),
+            encoding="utf-8",
         )
         self.assertIn("workflow-permission-scope", self.failures())
 

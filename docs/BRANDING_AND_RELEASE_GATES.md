@@ -15,6 +15,12 @@
 | License and provenance | Root LICENSE.md is Apache-2.0; upstream copyright and README preserved | Retain upstream authorship and third-party notices; independent branding does not imply sponsorship |
 | Automation | 19 original upstream workflow files are retained out of active workflow paths; inherited templates, funding, and agent guidance are similarly quarantined | Enable only individually reviewed GoreeCloud CI with narrowly scoped permissions |
 
+## Frontend dependency review and integration boundary
+
+The imported Core frontend manifest pins `home-assistant-frontend==20261028.4`. The matching upstream `home-assistant/frontend` tag `20261028.4` resolves to `a67b691a451e0b3fc469679b07158f963a61842c`, and its `LICENSE.md` is Apache-2.0. At this tag, `package.json` declares Node.js `24.22.1`, pnpm `12.15.0`, `postinstall: husky`, `prepack/postpack: pinst`, and a build manager that launches Gulp. The workspace config specifies `minimumReleaseAge`, `trustPolicy: no-downgrade`, a dependency build-script allowlist, and several patched dependencies. These are source-level findings, **not** a completed malware review, dependency audit, or frontend build.
+
+The next compatible implementation boundary is a **separately pinned, independently built frontend**, with upstream licenses and other assets reviewed before any changes to the Core frontend requirement. The GC UI styling, identity, navigation, and UI states must be implemented and screenshot-reviewed on that frontend branch; do not substitute a renamed Python package or an unvalidated CSS injection for a complete runtime rebrand. Protect existing websocket/auth contracts, user configurations, Lovelace dashboards, and device integrations while a separate frontend is tested. Do not execute package install hooks or modified build scripts without source and dependency review.
+
 ## GoreeCloud UI authority
 
 The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), not the imported upstream frontend. The active design-language standard and semantic tokens govern any future GoreeCloud-controlled screens. Stable Foundations v1.0.1 is scoped to semantic tokens, color, and browser-theme control; it does **not** confer stability on the rest of the experimental component workspace or certify this product.
@@ -35,10 +41,13 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 | Dependency and source security | Relevant dependency manifests, updates, permissions, patches, secrets exposure, and scanner findings reviewed | Open |
 | Supported Python syntax check | Pinned Python 3.14.10 hosted interpreter compiles selected backend modules and runs source tests | Verified in PR #4 and postmerge CI |
 | Package metadata smoke | Manual-only hosted Python 3.14.10 PEP 517 build with hash-verified setuptools 84.0.0; built wheel licensing and dual entrypoints checked without executing Home Assistant | Verified in [workflow run 42416187883](https://github.com/GoreeCloud/home-manager/actions/runs/42416187883); not an installer or runtime test |
+| Branded packaging and isolated installation | Verify GoreeCloud development metadata, pinned upstream provenance, wheel installation without runtime dependencies, and both generated CLI launchers | Under review; not yet an application runtime test |
 | Python core build and test | Clean supported Python >=3.14.2 environment, selected core tests and regression checks pass | Open |
 | Functional integration and privacy | Secure self-hosted setup, device discovery consent, least privilege, data retention and restore, error handling verified | Open |
 | MIPS integration | GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh interoperability, GoreeCloud Identity authentication, and GC UI contracts implemented and tested where applicable | Open |
 | Release | Signed/verifiable artifacts as appropriate, rollback, deployment checks, onboarding, supported hardware and release approval | Open |
+
+**Packaged distribution identity:** The rebranded package retains `homeassistant` as the internal Python distribution and preserves Home Assistant Core authorship. The GoreeCloud maintainer, project URLs, upstream source attribution, and **Alpha** development classification distinguish this imported derivative from a released upstream Home Assistant distribution. The first-party review packaging job will install the built wheel into a disposable virtual environment with `--no-index --no-deps --no-compile`, inspect the generated `hass` and `goreecloud-home-manager` launchers and Python metadata, and **will not invoke either command**. This does not validate runtime functionality.
 
 **Package test boundaries:** The manual-only package smoke uses a short-lived hosted runner and fetches the upstream-pinned setuptools 84.0.0 wheel, verifies its PyPI-listed SHA-256, and builds without Home Assistant runtime dependencies or secrets. The wheel inspector checks ZIP member safety, provenance-relevant package metadata, Apache-2.0 license contents, and the dual CLI entrypoints without installing or running Home Assistant. Building may execute the inspected setuptools build backend; it is not a full dependency or malware audit. No wheel is published or deployed.
 
@@ -49,7 +58,7 @@ The design authority is [GoreeCloud UI](https://github.com/GoreeCloud/gc-ui), no
 ## Next highest-value development steps
 
 1. Inspect the exact home-assistant-frontend==20261028.4 source/package provenance, license, build scripts, API coupling, and upstream asset/trademark constraints; identify the smallest compatible GC UI integration boundary.
-2. In a supported Python 3.14.10 isolated environment, review runtime dependencies and run selected Home Assistant Core tests, package installation checks, and regression smoke before backend edits.
+2. After a supported-Python isolated wheel-install smoke passes, separately review runtime dependencies and run selected Home Assistant Core tests and functional regression smoke before backend edits.
 3. Implement product-specific branding as a small, reviewable delta with functional/visual regression tests; avoid mass string replacements or breaking integration identifiers.
 4. Add controlled release CI only after reviewing the disabled upstream workflows and any needed secrets, publishing targets and permissions.
 5. Reconcile the canonical GoreeCloud/GoreeCloud-Github-Repositories.md *in place*, preserving its existing Drive file identity. A Markdown draft or GitHub issue is not a substitute for that update.

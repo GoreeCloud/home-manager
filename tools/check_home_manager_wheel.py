@@ -67,6 +67,23 @@ def inspect(wheel: Path) -> list[str]:
                 errors.append("unexpected wheel package name")
             if metadata.get("Version") != VERSION:
                 errors.append("unexpected wheel version")
+            if metadata.get("Summary") != "GoreeCloud Home Manager development import of Home Assistant Core.":
+                errors.append("missing GoreeCloud development package summary")
+            classifiers = metadata.get_all("Classifier", [])
+            if "Development Status :: 3 - Alpha" not in classifiers or any(
+                "Production/Stable" in item for item in classifiers
+            ):
+                errors.append("wheel incorrectly claims release maturity")
+            project_urls = metadata.get_all("Project-URL", [])
+            required_urls = (
+                "Homepage, https://github.com/GoreeCloud/home-manager",
+                "Source Code, https://github.com/GoreeCloud/home-manager",
+                "Bug Reports, https://github.com/GoreeCloud/home-manager/issues",
+                "Upstream Core Source, https://github.com/home-assistant/core",
+                "Upstream Frontend Source, https://github.com/home-assistant/frontend",
+            )
+            if not all(url in project_urls for url in required_urls):
+                errors.append("GoreeCloud and upstream package URL metadata incomplete")
             if metadata.get("License-Expression") != "Apache-2.0":
                 errors.append("Apache-2.0 license metadata missing")
             if not archive.read(prefix + "licenses/LICENSE.md").startswith(

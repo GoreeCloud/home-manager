@@ -7,14 +7,17 @@ name = "homeassistant"
 version = "2026.11.0"
 license = "Apache-2.0"
 license-files = ["LICENSE*", "homeassistant/backports/LICENSE*"]
-description = "Open-source home automation platform running on Python 3."
+description = "GoreeCloud Home Manager development import of Home Assistant Core."
 readme = "README.rst"
 authors = [
   { name = "The Home Assistant Authors", email = "hello@home-assistant.io" },
 ]
+maintainers = [
+  { name = "GoreeCloud", email = "admin@goreecloud.com" },
+]
 keywords = ["home", "automation"]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: End Users/Desktop",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
@@ -89,12 +92,14 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://www.home-assistant.io/"
-"Source Code" = "https://github.com/home-assistant/core"
-"Bug Reports" = "https://github.com/home-assistant/core/issues"
-"Docs: Dev" = "https://contributors.home-assistant.io/"
-"Discord" = "https://www.home-assistant.io/join-chat/"
-"Forum" = "https://community.home-assistant.io/"
+"Homepage" = "https://github.com/GoreeCloud/home-manager"
+"Source Code" = "https://github.com/GoreeCloud/home-manager"
+"Bug Reports" = "https://github.com/GoreeCloud/home-manager/issues"
+"Upstream Developer Docs" = "https://contributors.home-assistant.io/"
+"Upstream Community Chat" = "https://www.home-assistant.io/join-chat/"
+"Upstream Community Forum" = "https://community.home-assistant.io/"
+"Upstream Core Source" = "https://github.com/home-assistant/core"
+"Upstream Frontend Source" = "https://github.com/home-assistant/frontend"
 
 [project.scripts]
 hass = "homeassistant.__main__:main"
