@@ -535,19 +535,33 @@ jobs:
             --screenshot="$RUNNER_TEMP/home-manager-mobile.png" \
             "http://127.0.0.1:4173/ui_preview/" \
             > /dev/null 2>> "$RUNNER_TEMP/home-manager-chrome.log"
+          "$browser" --headless --no-sandbox --no-first-run \
+            --disable-gpu --disable-dev-shm-usage --disable-background-networking \
+            --disable-extensions --disable-default-apps --force-dark-mode \
+            --window-size=390,844 \
+            --screenshot="$RUNNER_TEMP/home-manager-mobile-dark.png" \
+            "http://127.0.0.1:4173/ui_preview/" \
+            > /dev/null 2>> "$RUNNER_TEMP/home-manager-chrome.log"
+          "$browser" --headless --no-sandbox --no-first-run \
+            --disable-gpu --disable-dev-shm-usage --disable-background-networking \
+            --disable-extensions --disable-default-apps --force-dark-mode \
+            --virtual-time-budget=3500 --dump-dom \
+            "http://127.0.0.1:4173/ui_preview/" \
+            > "$RUNNER_TEMP/home-manager-dom-dark.html" 2>> "$RUNNER_TEMP/home-manager-chrome.log"
+          grep -q 'data-gc-mode="dark"' "$RUNNER_TEMP/home-manager-dom-dark.html"
           python3 - <<'PY'
           import os
           from pathlib import Path
           root=Path(os.environ["RUNNER_TEMP"])
-          for name in ("home-manager-desktop.png","home-manager-mobile.png"):
+          for name in ("home-manager-desktop.png","home-manager-mobile.png","home-manager-mobile-dark.png"):
               data=(root/name).read_bytes()
               assert 8000 < len(data) < 3_000_000
               assert data[:8]==b"\x89PNG\r\n\x1a\n"
-          print("PREVIEW BROWSER SMOKE PASS: rendered generated device rows and two screenshot files")
+          print("PREVIEW BROWSER SMOKE PASS: generated device rows, confirmed dark theme and three PNG screenshots")
           print("Scope: synthetic one-page smoke only; no full visual acceptance or Home Assistant service")
           PY
           mkdir -p ui_preview/screenshots
-          cp "$RUNNER_TEMP/home-manager-desktop.png" "$RUNNER_TEMP/home-manager-mobile.png" ui_preview/screenshots/
+          cp "$RUNNER_TEMP/home-manager-desktop.png" "$RUNNER_TEMP/home-manager-mobile.png" "$RUNNER_TEMP/home-manager-mobile-dark.png" ui_preview/screenshots/
       - name: Upload synthetic screenshots for human GC UI visual review
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
