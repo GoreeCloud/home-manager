@@ -104,6 +104,8 @@ def inspect_sdist(content: bytes, *, verify_digest: bool = True) -> list[str]:
             names: set[str] = set()
             for member in parts:
                 path = member.name
+                if path == prefix[:-1] and member.isdir():
+                    continue  # setuptools archives include a top-level root directory
                 segments = PurePosixPath(path).parts
                 if (
                     not path.startswith(prefix)
