@@ -260,7 +260,7 @@ jobs:
   pyturbojpeg-controlled-wheel:
     # Only first-party review branch/manual. Build executes a SHA/tag-matched 606-byte
     # upstream setup.py in a disposable hosted runner without Home Assistant deps.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'ci/pyturbojpeg-controlled-wheel-20261108')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'ci/pyturbojpeg-controlled-wheel-20261108' || github.head_ref == 'ci/pyturbojpeg-synthetic-runtime-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -296,3 +296,39 @@ jobs:
           PIP_NO_INDEX=1 PIP_DISABLE_PIP_VERSION_CHECK=1 python -m pip wheel --no-build-isolation --no-deps --no-cache-dir --wheel-dir "$RUNNER_TEMP/pyturbojpeg-wheel" "$RUNNER_TEMP/pyturbojpeg-source"
       - name: Inspect result without importing JPEG module or installing wheel
         run: python tools/check_pyturbojpeg_built_wheel.py --wheel-dir "$RUNNER_TEMP/pyturbojpeg-wheel"
+      - name: Install distribution-provided libturbojpeg 2.1.5 for synthetic test
+        if: github.head_ref == 'ci/pyturbojpeg-synthetic-runtime-20261108'
+        run: |
+          set -eu
+          sudo apt-get update -qq
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends libturbojpeg
+          version=$(dpkg-query -W -f='${Version}' libturbojpeg)
+          case "$version" in
+            1:2.1.5-*) printf 'LIBTURBOJPEG PASS: Ubuntu 24.04 2.1.5 package\n' ;;
+            *) echo 'unexpected libturbojpeg version' >&2; exit 1 ;;
+          esac
+      - name: Download exact upstream-pinned NumPy CPython 3.14 wheel
+        if: github.head_ref == 'ci/pyturbojpeg-synthetic-runtime-20261108'
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/numpy-wheel"
+          python -m pip --isolated download --no-input --disable-pip-version-check --no-deps --only-binary=:all: --no-cache-dir --index-url https://pypi.org/simple --dest "$RUNNER_TEMP/numpy-wheel" 'numpy==2.3.2'
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          directory = Path(os.environ["RUNNER_TEMP"]) / "numpy-wheel"
+          files = list(directory.iterdir())
+          expected = "numpy-2.3.2-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+          assert len(files) == 1 and files[0].name == expected
+          assert 10_000_000 < files[0].stat().st_size < 22_000_000
+          assert hashlib.sha256(files[0].read_bytes()).hexdigest() == "fed5527c4cf10f16c6d0b6bee1f89958bccb0ad2522c8cadc2efd318bcd545f5"
+          print("NUMPY PASS: exact original Core 2.3.2 pin, Linux CPython 3.14 wheel SHA-256")
+          PY
+      - name: Install verified wheels offline and run synthetic JPEG APIs only
+        if: github.head_ref == 'ci/pyturbojpeg-synthetic-runtime-20261108'
+        run: |
+          set -eu
+          python -m venv "$RUNNER_TEMP/pyturbojpeg-synthetic-venv"
+          "$RUNNER_TEMP/pyturbojpeg-synthetic-venv/bin/python" -m pip install --no-index --no-deps --no-compile --no-cache-dir "$RUNNER_TEMP"/numpy-wheel/*.whl "$RUNNER_TEMP"/pyturbojpeg-wheel/*.whl
+          GOREECLOUD_SYNTHETIC_CODEC_CI=1 HOME="$RUNNER_TEMP" PYTHONNOUSERSITE=1 timeout 30s "$RUNNER_TEMP/pyturbojpeg-synthetic-venv/bin/python" tools/smoke_pyturbojpeg_jpeg.py
