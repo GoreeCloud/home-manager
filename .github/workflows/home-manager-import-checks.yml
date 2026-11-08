@@ -53,7 +53,7 @@ jobs:
     # Never execute unreviewed fork changes as build backend code.
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager')
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout source with no retained credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -101,4 +101,22 @@ jobs:
           assert "homeassistant" not in sys.modules, "upstream code must not be imported by this smoke test"
           print("INSTALL PASS: isolated wheel, package metadata, two CLI launchers")
           print("Scope: no dependencies installed, no Home Assistant service executed")
+          PY
+      - name: Resolve binary-only Core dependencies without installation or code execution
+        run: |
+          set -eu
+          python -m pip --isolated install --dry-run --ignore-installed --only-binary=:all: --quiet --no-input --disable-pip-version-check --retries 2 --timeout 15 --index-url https://pypi.org/simple --report "$RUNNER_TEMP/core-deps-report.json" "$RUNNER_TEMP"/wheels/homeassistant-*.whl
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import urlparse
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "core-deps-report.json").read_text())
+          packages = report.get("install", [])
+          names = {pkg["metadata"]["name"].lower().replace("_", "-") for pkg in packages}
+          assert "homeassistant" in names and len(packages) >= 20, "missing Core dependencies in resolver report"
+          unsafe = [pkg["metadata"]["name"] for pkg in packages if not urlparse(pkg["download_info"]["url"]).path.endswith(".whl")]
+          assert not unsafe, "source distributions or non-wheel URLs are not permitted"
+          print(f"DEPENDENCY RESOLUTION PASS: {len(packages)} wheel candidates, no installs")
+          print("Scope: pinned Core requirements only; no frontend, runtime imports, devices or deployments")
           PY
