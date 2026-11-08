@@ -175,6 +175,7 @@ def evaluate(root: Path) -> list[dict[str, object]]:
         "binary-only-core-dependency-plan",
         ".github/workflows/home-manager-import-checks.yml",
         ("--isolated install --dry-run --ignore-installed --only-binary=:all:",
+         "--constraint homeassistant/package_constraints.txt",
          "--index-url https://pypi.org/simple",
          "core-deps-report.json",
          "no installs"),
