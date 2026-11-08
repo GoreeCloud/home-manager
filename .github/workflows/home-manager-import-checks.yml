@@ -244,3 +244,16 @@ jobs:
           print("INVENTORY PASS: complete exact-pin audit, expected legacy audio gaps recorded")
           print("Scope: metadata only; dependency graph, runtime, branding and release remain open")
           PY
+  pyturbojpeg-sdist-provenance:
+    # Inert, size-bounded source inspection; only explicit/manual or reviewed PR.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'ci/pyturbojpeg-sdist-provenance-20261108')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout read-only source guard
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify exact pinned PyTurboJPEG source against its upstream Git tag
+        run: python3 tools/check_pyturbojpeg_sdist.py
