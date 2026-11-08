@@ -111,7 +111,9 @@ class CoreResolutionCandidateTests(unittest.TestCase):
         self.assertIn("uv==0.13.6", workflow)
         self.assertIn("22759b8895e1103578de6fb4cd27e94b4399d021023378d29f01333717751fba", workflow)
         self.assertIn("--no-build", workflow)
-        self.assertIn("--only-binary :all:", workflow)
+        self.assertIn("--no-config --no-cache --no-build", workflow)
+        self.assertIn("UV_NO_CACHE=1", workflow)
+        self.assertNotIn("--no-build --only-binary", workflow)
         self.assertIn("stage_home_manager_resolution_candidate.py", workflow)
 
 
