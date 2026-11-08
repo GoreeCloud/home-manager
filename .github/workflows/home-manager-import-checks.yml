@@ -426,7 +426,7 @@ jobs:
   pyric-static-python-compat:
     # Inert AST parsing of the exact PyPI archive; no radio access or code execution.
     # Only first-party review branch or explicit manual dispatch.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && github.head_ref == 'ci/pyric-static-python-compat-20261108')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'ci/pyric-static-python-compat-20261108' || github.head_ref == 'ci/pyric-static-capability-map-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 9
     steps:

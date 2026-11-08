@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from io import BytesIO
 from pathlib import Path
 import sys
@@ -59,6 +60,38 @@ class PyRICPythonASTTests(unittest.TestCase):
         self.assertIn("pyric/module_0.py", result["python_syntax_errors"])
         self.assertIs(result["source_executed"], False)
 
+    def test_sensitive_call_alias_mapping_is_static_and_source_only(self) -> None:
+        tree = ast.parse(
+            "import socket as sock\n"
+            "from fcntl import ioctl as control\n"
+            "import subprocess as process\n"
+            "import os\n"
+            "sock.socket()\n"
+            "control(0, 0)\n"
+            "process.Popen(['true'])\n"
+            "os.seteuid(0)\n"
+            "os.chmod('file', 0o700)\n"
+        )
+        found = scanner.inspect_static_call_sites(tree)
+        self.assertEqual(set(found), {
+            "socket.socket", "fcntl.ioctl", "subprocess.Popen",
+            "os.seteuid", "os.chmod",
+        })
+        self.assertEqual(found["fcntl.ioctl"], [6])
+        self.assertEqual(found["socket.socket"], [5])
+
+    def test_unrelated_calls_do_not_create_permission_claims(self) -> None:
+        tree = ast.parse("import json\njson.dumps({'socket': 'x'})\nfoo.socket()\n")
+        self.assertEqual(scanner.inspect_static_call_sites(tree), {})
+
+    def test_risk_label_is_not_a_runtime_approval(self) -> None:
+        tree = ast.parse("import socket\nsocket.socket()\n")
+        self.assertIn("socket.socket", scanner.inspect_static_call_sites(tree))
+        source = (ROOT / "tools/audit_pyric_python_ast.py").read_text(encoding="utf-8")
+        self.assertIn('"runtime_compatible_verified": False', source)
+        self.assertIn('"release_ready": False', source)
+        self.assertIn("manual review required", source)
+
     def test_archive_source_path_traversal_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "unsafe"):
             scanner.analyze_archive(source_archive(extra=("../evil.py", b"print('bad')")), check_hash=False)
@@ -84,6 +117,7 @@ class PyRICPythonASTTests(unittest.TestCase):
         self.assertIn("github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager'", job)
         self.assertIn("persist-credentials: false", job)
         self.assertIn("python tools/audit_pyric_python_ast.py", job)
+        self.assertIn("github.head_ref == 'ci/pyric-static-capability-map-20261108'", job)
         self.assertNotIn("pip install pyric", job)
 
 
