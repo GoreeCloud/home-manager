@@ -116,7 +116,7 @@ class PyRICSourcePreflightTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/home-manager-import-checks.yml").read_text(encoding="utf-8")
         self.assertIn("pyric-source-provenance:", workflow)
         self.assertIn("github.head_ref == 'ci/pyric-source-provenance-20261108'", workflow)
-        self.assertIn("python tools/inspect_pyric_sdist.py", workflow)
+        self.assertIn("python3 tools/inspect_pyric_sdist.py", workflow)
         source = SCRIPT.read_text(encoding="utf-8")
         for marker in ("tarfile.open(", "archive.extractfile(", "matching_0_1_6_3_git_tag_verified", "GPL_source_notice"):
             self.assertIn(marker, source)
