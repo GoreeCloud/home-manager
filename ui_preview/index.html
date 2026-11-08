@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>GoreeCloud Home Manager — Interface Preview</title>
+  <link rel="stylesheet" href="./vendor/gc-ui/styles/gc.v1.generated.css">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to main content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary">
+      <div class="brand-lockup">
+        <div class="brand-symbol" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="brand-words"><strong>GoreeCloud</strong><span>Home Manager</span></div>
+      </div>
+      <div class="workspace-label">PRIVATE SPACE <span class="preview-chip">DEMO</span></div>
+      <nav aria-label="Main navigation" class="side-navigation" id="desktop-navigation">
+        <button type="button" class="nav-item" data-section="overview" aria-current="page"><span class="nav-glyph" aria-hidden="true">◫</span>Overview</button>
+        <button type="button" class="nav-item" data-section="devices"><span class="nav-glyph" aria-hidden="true">⌁</span>Devices</button>
+        <button type="button" class="nav-item" data-section="automations"><span class="nav-glyph" aria-hidden="true">◇</span>Automations</button>
+        <button type="button" class="nav-item" data-section="privacy"><span class="nav-glyph" aria-hidden="true">◈</span>Privacy</button>
+      </nav>
+      <div class="sidebar-note">
+        <div class="note-icon" aria-hidden="true">✦</div>
+        <strong>Your home, thoughtfully organized.</strong>
+        <p>Designed for clarity and control, with privacy considered from the beginning.</p>
+        <span class="note-footnote">Interface preview · No live connection</span>
+      </div>
+      <div class="sidebar-footer"><span class="avatar" aria-hidden="true">GC</span><span><strong>Preview workspace</strong><small>Local synthetic session</small></span><span aria-hidden="true">···</span></div>
+    </aside>
+
+    <div class="content-column">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Home</span><span class="breadcrumb-divider" aria-hidden="true">/</span><strong id="breadcrumb-current">Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="offline-status"><span class="status-dot" aria-hidden="true"></span>No devices connected</span>
+          <label class="theme-control" for="theme-mode"><span>Appearance</span>
+            <select id="theme-mode" aria-label="Preview appearance"><option value="auto">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+          </label>
+          <label class="accent-control" for="accent-seed"><span class="visually-hidden">Example accent color</span><input id="accent-seed" type="color" value="#46647A" aria-label="Example accent color" title="Customize the example accent color"></label>
+        </div>
+      </header>
+
+      <main id="content" tabindex="-1">
+        <div class="demo-disclosure" role="status"><span class="disclosure-symbol" aria-hidden="true">●</span><strong>Design preview</strong><span>Everything shown is synthetic. No account, device, sensor, or home system is connected.</span></div>
+
+        <section id="page-overview" class="view-panel" aria-labelledby="overview-title">
+          <div class="hero">
+            <div class="hero-content">
+              <div class="eyebrow"><span class="spark" aria-hidden="true">✳</span> YOUR SPACE AT A GLANCE</div>
+              <h1 id="overview-title">A calmer way to<br><em>feel at home.</em></h1>
+              <p>A unified view of the details that matter. This is a safe, interactive design study—not a live home controller.</p>
+              <button type="button" class="primary-action" data-open-section="devices">Explore demo devices <span aria-hidden="true">↗</span></button>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+              <div class="visual-orbit one"></div><div class="visual-orbit two"></div>
+              <div class="house-core"><div class="roof"></div><div class="house-window"></div><div class="door"></div></div>
+              <span class="visual-satellite satellite-one">✦</span><span class="visual-satellite satellite-two">◦</span><span class="visual-satellite satellite-three">◇</span>
+            </div>
+            <div class="hero-corner-label">GC UI · CONCEPT 01</div>
+          </div>
+
+          <div class="section-heading"><div><p class="eyebrow muted">DEMO SNAPSHOT</p><h2>Everything in its place</h2></div><span class="quiet-label">Sample household · Fictional</span></div>
+          <div class="metric-grid" id="overview-metrics" aria-label="Sample home summary">
+            <article class="metric-card"><div class="metric-top"><span class="metric-icon" aria-hidden="true">⌁</span><span class="metric-tag">EXAMPLE</span></div><strong id="metric-devices">6</strong><span>Sample devices</span><small>Read-only preview</small></article>
+            <article class="metric-card"><div class="metric-top"><span class="metric-icon" aria-hidden="true">▣</span><span class="metric-tag">EXAMPLE</span></div><strong id="metric-rooms">2</strong><span>Sample rooms</span><small>Organized by space</small></article>
+            <article class="metric-card"><div class="metric-top"><span class="metric-icon" aria-hidden="true">✧</span><span class="metric-tag">EXAMPLE</span></div><strong id="metric-active">2</strong><span>Active examples</span><small>Not live readings</small></article>
+          </div>
+
+          <div class="overview-bottom">
+            <section class="feature-card" aria-labelledby="space-title"><div class="card-title-row"><div><p class="eyebrow muted">ROOMS</p><h2 id="space-title">Made for your spaces</h2></div><span class="card-corner-icon" aria-hidden="true">⌘</span></div>
+              <div class="room-preview"><div class="room-bubble" aria-hidden="true">◒</div><div><strong>Living area</strong><small>3 sample devices</small></div><span class="room-chevron" aria-hidden="true">↗</span></div>
+              <div class="room-preview"><div class="room-bubble secondary" aria-hidden="true">⌁</div><div><strong>Studio</strong><small>3 sample devices</small></div><span class="room-chevron" aria-hidden="true">↗</span></div>
+            </section>
+            <section class="feature-card privacy-feature" aria-labelledby="privacy-feature-title"><div><p class="eyebrow muted">BUILT AROUND TRUST</p><h2 id="privacy-feature-title">Privacy, visibly considered.</h2><p>No device discovery, external requests, or personal data collection happens in this preview. Future integration requires explicit consent and security review.</p></div><button type="button" class="quiet-action" data-open-section="privacy">Review preview safeguards <span aria-hidden="true">↗</span></button></section>
+          </div>
+        </section>
+
+        <section id="page-devices" class="view-panel" aria-labelledby="devices-title" hidden>
+          <div class="inner-page-heading"><p class="eyebrow muted">YOUR SPACES · SIMULATED</p><h1 id="devices-title">Devices, simplified.</h1><p>Explore the proposed inventory experience using fictional example devices. Nothing here can control your home.</p></div>
+          <div class="toolbar"><label class="search-field" for="device-search"><span class="search-symbol" aria-hidden="true">⌕</span><span class="visually-hidden">Search demo devices</span><input id="device-search" type="search" autocomplete="off" placeholder="Search sample devices"></label><label class="room-select-label" for="room-filter"><span class="visually-hidden">Filter demo devices by room</span><select id="room-filter"><option>All rooms</option><option>Living area</option><option>Studio</option></select></label></div>
+          <div class="list-summary"><strong id="device-count">6 sample devices</strong><span>Illustrative data only</span></div>
+          <div id="device-results" class="device-list" aria-live="polite"></div>
+          <p id="device-empty" class="empty-state" hidden>No matching example devices. Try another search or room.</p>
+        </section>
+
+        <section id="page-automations" class="view-panel" aria-labelledby="automations-title" hidden>
+          <div class="inner-page-heading"><p class="eyebrow muted">IMAGINE THE POSSIBILITIES</p><h1 id="automations-title">Routines with intention.</h1><p>Illustrative ideas for future automations. None is installed, scheduled, or executable in this design preview.</p></div>
+          <div class="routine-grid">
+            <article class="routine-card"><span class="routine-icon" aria-hidden="true">☀</span><span class="routine-pill">CONCEPT ONLY</span><h2>Gentle mornings</h2><p>A considered transition into the day with light and comfort settings.</p><div class="routine-meta">No triggers connected <span aria-hidden="true">↗</span></div></article>
+            <article class="routine-card"><span class="routine-icon" aria-hidden="true">☾</span><span class="routine-pill">CONCEPT ONLY</span><h2>Evening unwind</h2><p>Bring common activities together, while retaining manual control.</p><div class="routine-meta">No triggers connected <span aria-hidden="true">↗</span></div></article>
+          </div>
+        </section>
+
+        <section id="page-privacy" class="view-panel" aria-labelledby="privacy-title" hidden>
+          <div class="inner-page-heading"><p class="eyebrow muted">TRANSPARENCY BY DESIGN</p><h1 id="privacy-title">Know what stays private.</h1><p>The preview contains only built-in fictional fixtures. These design goals are not proof that production privacy or cybersecurity integrations are implemented.</p></div>
+          <div class="privacy-grid"><article><span class="privacy-mark" aria-hidden="true">◇</span><h2>No live connections</h2><p>There are no backend calls, home devices, remote sessions, account tokens, or telemetry endpoints in this preview.</p></article><article><span class="privacy-mark" aria-hidden="true">◈</span><h2>No stored household data</h2><p>The preview's fictional data is bundled in source. Appearance choices are session-only and not persisted.</p></article><article><span class="privacy-mark" aria-hidden="true">✧</span><h2>Consent comes first</h2><p>Actual device discovery and privileged recovery require separate product permissions and tested safeguards.</p></article></div>
+          <div class="privacy-notice"><strong>Engineering boundary</strong><p>GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh integration, and GoreeCloud Identity remain release gates. This page does not connect to or replace Home Assistant authentication.</p></div>
+        </section>
+      </main>
+
+      <footer class="page-footer"><span>GoreeCloud Home Manager · UI concept</span><span>Powered by verified GC UI Foundations 1.0.1 · No real devices</span></footer>
+      <nav aria-label="Mobile navigation" class="mobile-dock">
+        <button type="button" data-section="overview" aria-current="page"><span aria-hidden="true">◫</span><small>Overview</small></button>
+        <button type="button" data-section="devices"><span aria-hidden="true">⌁</span><small>Devices</small></button>
+        <button type="button" data-section="automations"><span aria-hidden="true">◇</span><small>Routines</small></button>
+        <button type="button" data-section="privacy"><span aria-hidden="true">◈</span><small>Privacy</small></button>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>
