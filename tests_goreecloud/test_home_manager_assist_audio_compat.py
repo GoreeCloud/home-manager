@@ -35,13 +35,13 @@ class ModernVad:
 class LegacySpeex:
     def Process10ms(self, audio: bytes) -> SimpleNamespace:
         assert audio == PCM
-        return SimpleNamespace(audio=b"legacy")
+        return SimpleNamespace(audio=bytes([17]) * 320)
 
 
 class ModernSpeex:
     def process_10ms(self, audio: bytes) -> bytes:
         assert audio == PCM
-        return b"modern"
+        return bytes([23]) * 320
 
 
 class HomeManagerAssistAudioCompatibilityTests(unittest.TestCase):
@@ -58,16 +58,16 @@ class HomeManagerAssistAudioCompatibilityTests(unittest.TestCase):
         self.assertEqual(bridge.process_vad_chunk(Both(), PCM), 0.75)
 
     def test_legacy_speex_audio_field_preserved(self) -> None:
-        self.assertEqual(bridge.process_speex_chunk(LegacySpeex(), PCM), b"legacy")
+        self.assertEqual(bridge.process_speex_chunk(LegacySpeex(), PCM), bytes([17]) * 320)
 
     def test_modern_speex_bytes_preserved(self) -> None:
-        self.assertEqual(bridge.process_speex_chunk(ModernSpeex(), PCM), b"modern")
+        self.assertEqual(bridge.process_speex_chunk(ModernSpeex(), PCM), bytes([23]) * 320)
 
     def test_speex_prefers_modern_if_both_methods_exist(self) -> None:
         class Both(LegacySpeex, ModernSpeex):
             pass
 
-        self.assertEqual(bridge.process_speex_chunk(Both(), PCM), b"modern")
+        self.assertEqual(bridge.process_speex_chunk(Both(), PCM), bytes([23]) * 320)
 
     def test_missing_methods_are_rejected(self) -> None:
         with self.assertRaises(TypeError):
@@ -88,6 +88,51 @@ class HomeManagerAssistAudioCompatibilityTests(unittest.TestCase):
             bridge.process_speex_chunk(ModernInvalid(), PCM)
         with self.assertRaisesRegex(TypeError, "legacy Speex"):
             bridge.process_speex_chunk(LegacyInvalid(), PCM)
+
+    def test_short_and_long_frames_rejected_before_native_call(self) -> None:
+        class UnsafeNative:
+            def __init__(self) -> None:
+                self.called = False
+
+            def process_10ms(self, audio: bytes) -> bytes:
+                self.called = True
+                return bytes(320)
+
+        for size in (0, 1, 319, 321, 4096):
+            with self.subTest(size=size):
+                for entry in (bridge.process_vad_chunk, bridge.process_speex_chunk):
+                    native = UnsafeNative()
+                    with self.assertRaisesRegex(ValueError, "exactly 320"):
+                        entry(native, bytes(size))
+                    self.assertFalse(native.called, "invalid frame reached native extension")
+
+    def test_wrong_frame_type_rejected(self) -> None:
+        class Native:
+            def process_10ms(self, audio: bytes) -> bytes:
+                self.fail("must not invoke native method")
+
+        for entry in (bridge.process_vad_chunk, bridge.process_speex_chunk):
+            with self.assertRaisesRegex(TypeError, "must be bytes"):
+                entry(Native(), "x" * 320)
+
+    def test_short_speex_output_is_rejected(self) -> None:
+        class ModernTruncated:
+            def process_10ms(self, audio: bytes) -> bytes:
+                return bytes(319)
+
+        class LegacyTruncated:
+            def Process10ms(self, audio: bytes) -> SimpleNamespace:
+                return SimpleNamespace(audio=bytes(321))
+
+        for native in (ModernTruncated(), LegacyTruncated()):
+            with self.assertRaisesRegex(ValueError, "invalid 10ms frame"):
+                bridge.process_speex_chunk(native, PCM)
+
+    def test_boundary_rule_is_not_optional_python_assertion(self) -> None:
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("if len(audio) != _FRAME_BYTES:", source)
+        self.assertIn("_require_frame(audio)", source)
+        self.assertNotIn("assert len(audio)", source)
 
     def test_noncallable_modern_attribute_uses_legacy(self) -> None:
         class LegacyWithShadow(LegacyVad):
