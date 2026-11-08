@@ -44,6 +44,10 @@ def create_fixture(root: Path) -> None:
             'requires-python = ">=3.14.2"\n'
             '[project.scripts]\nhass = "homeassistant.__main__:main"\n'
             'goreecloud-home-manager = "homeassistant.__main__:main"\n'
+            '[tool.setuptools]\n'
+            '[tool.pytest.ini_options]\n'
+            '[tool.ruff]\n'
+            '[tool.ruff.lint.pydocstyle]\n'
         ),
         "homeassistant/components/frontend/manifest.json": (
             '{"domain": "frontend", "requirements": '
@@ -86,7 +90,7 @@ class HomeManagerImportGuardTests(unittest.TestCase):
 
     def test_valid_import_fixture_passes(self) -> None:
         self.assertEqual(self.failures(), set())
-        self.assertEqual(len(guard.evaluate(self.root)), 14)
+        self.assertEqual(len(guard.evaluate(self.root)), 15)
 
     def test_goreecloud_cli_alias_must_preserve_upstream_entrypoint(self) -> None:
         p = self.root / "pyproject.toml"
@@ -128,6 +132,12 @@ class HomeManagerImportGuardTests(unittest.TestCase):
             "unknown source\n", encoding="utf-8"
         )
         self.assertIn("upstream-provenance", self.failures())
+
+    def test_truncated_python_tooling_configuration_is_rejected(self) -> None:
+        p = self.root / "pyproject.toml"
+        source = p.read_text(encoding="utf-8")
+        p.write_text(source.split("[tool.pytest.ini_options]")[0], encoding="utf-8")
+        self.assertIn("upstream-python-tooling-preserved", self.failures())
 
     def test_frontend_pin_regression_is_detected(self) -> None:
         (self.root / "homeassistant/components/frontend/manifest.json").write_text(
