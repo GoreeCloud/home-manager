@@ -77,6 +77,7 @@ class ProjectionTests(unittest.TestCase):
             "consent_is_active": lambda: self.consent,
             "user": self.user,
             "hass": self.hass,
+            "disclosure_is_approved": lambda entity_id, value: entity_id == "light.demo_lamp" and value == "on",
         }
         params.update(overrides)
         return privacy.project_authorized_entity(**params)
@@ -172,6 +173,36 @@ class ProjectionTests(unittest.TestCase):
         with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$") as error:
             self.run_projection()
         self.assertNotIn("private user diagnostic", str(error.exception))
+
+    def test_classifier_missing_fails_closed_before_permissions_or_state_read(self):
+        with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$"):
+            self.run_projection(disclosure_is_approved=None)
+        self.assertEqual(self.permissions.checks, [])
+        self.assertEqual(self.states.lookups, [])
+
+    def test_sensitive_scalar_is_refused_even_for_consented_authorized_entity(self):
+        self.states.state = SimpleNamespace(
+            entity_id="light.demo_lamp", state="unreviewed person's location"
+        )
+        with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$"):
+            self.run_projection()
+        self.assertEqual(self.states.lookups, ["light.demo_lamp"])
+
+    def test_disclosure_policy_exception_is_sanitized(self):
+        def broken(_entity_id, _value):
+            raise RuntimeError("private sensitive state value")
+        with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$") as ctx:
+            self.run_projection(disclosure_is_approved=broken)
+        self.assertNotIn("private sensitive", str(ctx.exception))
+
+    def test_policy_callback_not_invoked_for_unauthorized_entity(self):
+        calls = []
+        self.permissions.allowed = False
+        with self.assertRaises(privacy.EntityNotVisible):
+            self.run_projection(
+                disclosure_is_approved=lambda entity_id, value: calls.append((entity_id, value)) or True
+            )
+        self.assertEqual(calls, [])
 
     def test_no_io_transport_auth_or_ha_runtime_imports(self):
         source = SCRIPT.read_text()
