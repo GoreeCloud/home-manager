@@ -59,17 +59,20 @@ def project_authorized_entity(
     consent_is_active: Callable[[], bool],
     user: Any,
     hass: Any,
+    disclosure_is_approved: Callable[[str, str], bool] | None = None,
 ) -> bytes:
     """Return minimal JSON bytes *before a future HTTP response*.
 
     Ordering: validate consent scope -> active consent -> per-user POLICY_READ
-    -> single state lookup -> active consent recheck -> minimal serialization.
+    -> single state lookup -> trusted scalar disclosure approval -> active
+    consent recheck -> minimal serialization.
     No bulk state enumeration, metadata, auth tokens, network, or storage.
     """
     if not _valid_id(entity_id):
         raise EntityNotVisible
     allowed = _validate_allowlist(consented_entity_ids)
-    if entity_id not in allowed or not callable(consent_is_active):
+    if (entity_id not in allowed or not callable(consent_is_active)
+            or not callable(disclosure_is_approved)):
         raise EntityNotVisible
 
     try:
@@ -88,6 +91,10 @@ def project_authorized_entity(
             or len(value) > MAX_STATE_CHARS
             or any(ord(char) < 32 or ord(char) == 127 for char in value)
         ):
+            raise EntityNotVisible
+        # All state strings can be sensitive. Disclose only with an explicit,
+        # trusted per-entity/per-value policy approval; no permissive default.
+        if disclosure_is_approved(entity_id, value) is not True:
             raise EntityNotVisible
         if consent_is_active() is not True:
             raise EntityNotVisible
