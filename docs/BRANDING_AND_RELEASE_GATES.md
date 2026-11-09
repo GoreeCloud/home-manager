@@ -2,6 +2,14 @@
 
 **Status:** Development-stage source import. This document records inspected implementation boundaries, verified decisions, and outstanding acceptance checks. It is not a release approval.
 
+## November 8, 2026 — release-gate engineering checkpoint (not a release)
+
+- [PR #31](https://github.com/GoreeCloud/home-manager/pull/31) adds a **second per-entity POLICY_READ check after the scalar classifier and consent recheck** in the unwired first-party privacy projector; it also denies Unicode format/bidi/invisible/private/surrogate control-category scalar values. Three mock-only regressions passed. **166 Python source-integrity tests** and all three applicable [PR checks](https://github.com/GoreeCloud/home-manager/actions/runs/42550975331) passed. This does **not** make cross-process authorization revocation atomic or implement GoreeShield.
+- [PR #32](https://github.com/GoreeCloud/home-manager/pull/32) adds branch-scoped **real Chrome narrow mobile RTL** navigation/reflow checks to the disconnected GC UI concept. It verifies four page headings/focus states, sidebar/mobile-dock layout, bounds and lack of root-level horizontal overflow under the reviewed browser viewport. **31 Node tests** and four applicable [PR checks](https://github.com/GoreeCloud/home-manager/actions/runs/42550980489) passed. This is not translated RTL content, all zoom levels, human assistive-tech acceptance or an integrated frontend.
+- [PR #33](https://github.com/GoreeCloud/home-manager/pull/33) adds a dependency-free **read-only Bluetooth dependency invariant** requiring the imported Bluetooth recovery pins and lifecycle references to remain reviewable. Eight fake-source-only tests passed; all three applicable [PR checks](https://github.com/GoreeCloud/home-manager/actions/runs/42550983044) passed. This is not PyRIC license clearance, safe radio privilege control, a dependency solve, or a Bluetooth runtime test.
+- [Public main after these merges](https://github.com/GoreeCloud/home-manager/commit/c026e4b91b6a1f16ef369d5ea1277f132fa8250e) passes [post-merge CI](https://github.com/GoreeCloud/home-manager/actions/runs/42551191679) with **174 first-party Python source/synthetic tests**. The remaining release blockers are unchanged: trusted server-side consent/Identity/GoreeShield privacy integration, Wardveil radio privileges/security, full Core Python 3.14.10 transitive resolution, separately built GC UI branded Home Assistant frontend, real service and accessibility testing, deployment and rollback. No household device, credentials or production system was used.
+
+
 ## Verified source baseline (November 7, 2026)
 
 | Responsibility | Current source evidence | Implication |
