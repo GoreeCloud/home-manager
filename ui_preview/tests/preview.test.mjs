@@ -56,18 +56,21 @@ test("navigation clamps unknown section names without interpreting user strings"
 test("preview HTML exposes accessibility landmarks, live disclosure and four page states",()=>{
   assert.match(html,/<html lang="en">/);
   assert.match(html,/href="#content"/);
-  assert.match(html,/<main id="content" tabindex="-1">/);
+  assert.match(html,/<main id="content" tabindex="-1" aria-labelledby="overview-title">/);
   assert.match(html,/aria-label="Mobile navigation"/);
   assert.match(html,/class="mobile-brand"/);
   assert.match(css,/\.mobile-brand \{display:flex/);
   assert.match(html,/aria-label="Main navigation"/);
   for(const section of ["overview","devices","automations","privacy"]){
     assert.match(html,new RegExp('id="page-'+section+'"'));
+    assert.match(html,new RegExp('<h1 id="'+section+'-title" tabindex="-1">'));
     assert.equal(html.split('data-section="'+section+'"').length-1,2);
   }
   assert.match(html,/No account, device, sensor, or home system is connected/);
   assert.match(html,/No triggers connected/);
-  assert.match(html,/aria-live="polite"/);
+  assert.match(html,/id="device-count" role="status" aria-live="polite" aria-atomic="true"/);
+  assert.match(html,/id="device-results" class="device-list"><\/div>/);
+  assert.match(app,/main\.setAttribute\("aria-labelledby",safe\+"-title"\)/);
 });
 
 test("no external domain, telemetry endpoint, iframe, inline execution or live controls",()=>{
