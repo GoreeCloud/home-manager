@@ -42,7 +42,11 @@ class GCUIHostedMainPreviewScopeTests(unittest.TestCase):
         self.assertIn("retention-days: 2",job)
         self.assertIn("home-manager-gc-ui-concept-screenshots",job)
         self.assertNotIn("secrets.",job)
-        self.assertNotIn("deploy",job.lower().split("  gc-ui-home-manager-preview:",1)[-1].replace("no deployments",""))
+        for command in ("npm publish", "docker push", "kubectl apply",
+                        "gh release create", "terraform apply",
+                        "aws s3 sync", "rsync --delete"):
+            with self.subTest(command=command):
+                self.assertNotIn(command, job.lower())
 
     def test_no_runtime_ui_network_permissions_in_preview_html(self):
         html=(ROOT/"ui_preview/index.html").read_text(encoding="utf-8")
