@@ -101,7 +101,7 @@ test("narrow synthetic RTL browser contract exercises real reflow and navigation
   assert.match(harness,/gc-preview-layout/);
   assert.match(harness,/getBoundingClientRect/);
   assert.match(harness,/scrollWidth/);
-  assert.match(harness,/dir="rtl"/);
+  assert.match(harness,/root\.dir==="rtl"/);
   assert.match(harness,/gcUiLayoutTest="pass"/);
 });
 
