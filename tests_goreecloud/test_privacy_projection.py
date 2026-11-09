@@ -97,7 +97,7 @@ class ProjectionTests(unittest.TestCase):
     def test_authorized_fixture_projects_only_two_scalar_fields(self):
         payload = self.run_projection()
         self.assertEqual(json.loads(payload), {"entity_id": "light.demo_lamp", "state": "on"})
-        self.assertEqual(self.permissions.checks, [("light.demo_lamp", "read")])
+        self.assertEqual(self.permissions.checks, [("light.demo_lamp", "read")] * 2)
         self.assertEqual(self.states.lookups, ["light.demo_lamp"])
         self.assertLessEqual(len(payload), privacy.MAX_RESPONSE_BYTES)
         for leak in (b"attributes", b"timestamp", b"context", b"location", b"user"):
@@ -203,6 +203,37 @@ class ProjectionTests(unittest.TestCase):
                 disclosure_is_approved=lambda entity_id, value: calls.append((entity_id, value)) or True
             )
         self.assertEqual(calls, [])
+
+    def test_revoked_permissions_after_disclosure_refused_before_output(self):
+        def revoke(_id, _value):
+            self.permissions.allowed = False
+            return True
+        with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$"):
+            self.run_projection(disclosure_is_approved=revoke)
+        self.assertEqual(self.states.lookups, ["light.demo_lamp"])
+        self.assertEqual(self.permissions.checks, [("light.demo_lamp", "read")] * 2)
+
+    def test_policy_exception_on_second_permission_check_is_sanitized(self):
+        original = self.permissions.check_entity
+        calls = []
+        def fail_on_second(entity_id, policy):
+            calls.append((entity_id, policy))
+            if len(calls) == 2:
+                raise RuntimeError("private revoked-user identifier")
+            return original(entity_id, policy)
+        self.permissions.check_entity = fail_on_second
+        with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$") as caught:
+            self.run_projection()
+        self.assertEqual(len(calls), 2)
+        self.assertNotIn("identifier", str(caught.exception))
+
+    def test_unicode_bidi_zero_width_unassigned_and_surrogate_values_refused(self):
+        for value in ("on\u202eNO", "on\u200bNO", "on\u2066NO",
+                      "ok\ud800", "ok\ue000"):
+            with self.subTest(codepoints=[hex(ord(x)) for x in value]):
+                self.states.state = SimpleNamespace(entity_id="light.demo_lamp", state=value)
+                with self.assertRaisesRegex(privacy.EntityNotVisible, "^Entity not available$"):
+                    self.run_projection()
 
     def test_no_io_transport_auth_or_ha_runtime_imports(self):
         source = SCRIPT.read_text()
