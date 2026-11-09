@@ -74,9 +74,11 @@ function navigateTo(section,{focus=true}={}){
   }
   document.getElementById("breadcrumb-current").textContent=headings[safe];
   document.title=headings[safe]+" · GoreeCloud Home Manager — Interface Preview";
+  const main=document.getElementById("content");
+  main.setAttribute("aria-labelledby",safe+"-title");
   if(focus){
-    const main=document.getElementById("content");
-    main.focus({preventScroll:true});
+    // Announce the destination heading instead of a generic main landmark.
+    document.getElementById(safe+"-title").focus({preventScroll:true});
     main.scrollIntoView({block:"start",behavior:"auto"});
   }
 }
