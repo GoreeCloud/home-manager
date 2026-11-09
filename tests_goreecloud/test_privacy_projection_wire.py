@@ -93,6 +93,9 @@ class LocalOnlyHandler(BaseHTTPRequestHandler):
                 consent_is_active=lambda: self.server.synthetic_consent,
                 user=FakeUser(),
                 hass=FakeHass(),
+                disclosure_is_approved=lambda entity_id, value: (
+                    self.server.synthetic_disclosure and entity_id == 'light.demo_lamp' and value == 'on'
+                ),
             )
         except privacy.EntityNotVisible:
             self.respond(404, b'{"error":"not available"}')
@@ -118,6 +121,7 @@ class LoopbackWireTests(unittest.TestCase):
         # Owned disposable ephemeral loopback listener. Never bind 0.0.0.0.
         cls.server = HTTPServer(("127.0.0.1", 0), LocalOnlyHandler)
         cls.server.synthetic_consent = True
+        cls.server.synthetic_disclosure = True
         cls.port = cls.server.server_address[1]
         cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
@@ -130,6 +134,7 @@ class LoopbackWireTests(unittest.TestCase):
 
     def setUp(self):
         self.server.synthetic_consent = True
+        self.server.synthetic_disclosure = True
 
     def request(self, path, method="GET"):
         # http.client uses direct 127.0.0.1 TCP; no HTTP proxy environment.
@@ -166,6 +171,12 @@ class LoopbackWireTests(unittest.TestCase):
 
     def test_revoked_consent_stops_even_authorized_entity_on_wire(self):
         self.server.synthetic_consent = False
+        status, _, body = self.request(BASE + "light.demo_lamp")
+        self.assertEqual(status, 404)
+        self.assertEqual(body, b'{"error":"not available"}')
+
+    def test_classifier_denial_returns_only_generic_404_on_wire(self):
+        self.server.synthetic_disclosure = False
         status, _, body = self.request(BASE + "light.demo_lamp")
         self.assertEqual(status, 404)
         self.assertEqual(body, b'{"error":"not available"}')
