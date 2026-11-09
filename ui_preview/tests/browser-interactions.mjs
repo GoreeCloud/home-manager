@@ -100,3 +100,32 @@ output.setAttribute("aria-label","Synthetic browser interaction test result");
 output.textContent="BROWSER INTERACTION PASS: "+assertions+" local assertions; no real systems";
 document.getElementById("content").append(output);
 document.documentElement.dataset.gcUiTest="pass";
+
+/* Explicit CI-only narrow/RTL fixture. The existing preview stays LTR by
+ * default; this checks reflow without user/device/network dependencies. */
+if(new URL(window.location.href).searchParams.get("gc-preview-layout")==="rtl"){
+  document.documentElement.dir="rtl";
+  const root=document.documentElement;
+  const width=root.clientWidth;
+  check(width>=320 && width<780,"actual headless CSS viewport is mobile");
+  check(getComputedStyle(document.querySelector(".sidebar")).display==="none",
+    "desktop sidebar is not visually present on narrow RTL viewport");
+  check(getComputedStyle(document.querySelector(".mobile-dock")).display!=="none",
+    "mobile dock remains visible on narrow RTL viewport");
+  for(const section of ["overview","devices","automations","privacy"]){
+    button(section,"mobile").click();
+    active(section);
+    const heading=document.getElementById(section+"-title");
+    check(document.activeElement===heading,"RTL navigation focuses visible heading "+section);
+    const rect=heading.getBoundingClientRect();
+    check(rect.width>0 && rect.left>=-2 && rect.right<=width+2,
+      "heading stays within narrow RTL viewport "+section);
+    const content=document.getElementById("content").getBoundingClientRect();
+    check(content.left>=-2 && content.right<=width+2,
+      "main content fits narrow RTL viewport "+section);
+    check(root.scrollWidth<=width+2,
+      "no page-level horizontal overflow in narrow RTL viewport "+section);
+  }
+  check(root.dir==="rtl","RTL direction explicitly applied to fictional concept");
+  document.documentElement.dataset.gcUiLayoutTest="pass";
+}
