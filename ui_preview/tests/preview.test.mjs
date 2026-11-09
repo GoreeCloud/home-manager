@@ -96,6 +96,15 @@ test("GC UI Foundations semantic token imports are used without a brand color ma
   assert.match(app,/not a mandated GoreeCloud/);
 });
 
+test("narrow synthetic RTL browser contract exercises real reflow and navigation",()=>{
+  const harness=readFileSync(path.join(root,"tests/browser-interactions.mjs"),"utf8");
+  assert.match(harness,/gc-preview-layout/);
+  assert.match(harness,/getBoundingClientRect/);
+  assert.match(harness,/scrollWidth/);
+  assert.match(harness,/dir="rtl"/);
+  assert.match(harness,/gcUiLayoutTest="pass"/);
+});
+
 test("responsive, forced-color, reduced-motion and mobile safe-area states are authored",()=>{
   assert.match(css,/@media \(max-width:780px\)/);
   assert.match(css,/env\(safe-area-inset-bottom\)/);
