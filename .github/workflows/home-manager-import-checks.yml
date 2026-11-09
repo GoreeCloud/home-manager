@@ -469,7 +469,7 @@ jobs:
   gc-ui-home-manager-preview:
     # A synthetic browser-only concept. First-party review/manual; zero accounts,
     # household hardware, network services, production credentials or releases.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108' || github.head_ref == 'test/ha-readonly-websocket-contract-20261108' || github.head_ref == 'test/ha-entity-rest-minimization-20261108' || github.head_ref == 'fix/gc-ui-preview-page-focus-20261108'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108' || github.head_ref == 'test/ha-readonly-websocket-contract-20261108' || github.head_ref == 'test/ha-entity-rest-minimization-20261108' || github.head_ref == 'fix/gc-ui-preview-page-focus-20261108' || github.head_ref == 'test/gc-ui-narrow-rtl-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -533,6 +533,15 @@ jobs:
             2>> "$RUNNER_TEMP/home-manager-chrome.log"
           grep -q 'data-gc-ui-test="pass"' "$RUNNER_TEMP/home-manager-interaction-dom.html"
           grep -q 'BROWSER INTERACTION PASS:' "$RUNNER_TEMP/home-manager-interaction-dom.html"
+          "$browser" --headless --no-sandbox --no-first-run \
+            --disable-gpu --disable-dev-shm-usage --disable-background-networking \
+            --disable-extensions --disable-default-apps --window-size=390,844 \
+            --virtual-time-budget=5000 \
+            --dump-dom "http://127.0.0.1:4173/ui_preview/?gc-preview-test=1&gc-preview-layout=rtl" \
+            > "$RUNNER_TEMP/home-manager-narrow-rtl.html" \
+            2>> "$RUNNER_TEMP/home-manager-chrome.log"
+          grep -q 'data-gc-ui-test="pass"' "$RUNNER_TEMP/home-manager-narrow-rtl.html"
+          grep -q 'data-gc-ui-layout-test="pass"' "$RUNNER_TEMP/home-manager-narrow-rtl.html"
           "$browser" --headless --no-sandbox --no-first-run \
             --disable-gpu --disable-dev-shm-usage --disable-background-networking \
             --disable-extensions --disable-default-apps --window-size=1440,900 \
