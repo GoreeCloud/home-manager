@@ -30,8 +30,10 @@ button("devices").click();
 active("devices");
 check(document.getElementById("device-results").children.length===6,
   "all six synthetic sample devices render");
-check(document.activeElement===document.getElementById("content"),
-  "navigation focus moves into the main landmark");
+check(document.activeElement===document.getElementById("devices-title"),
+  "navigation focuses the visible page heading");
+check(document.getElementById("content").getAttribute("aria-labelledby")==="devices-title",
+  "main landmark receives the destination heading label");
 
 const search=document.getElementById("device-search");
 search.value="reading";
@@ -58,11 +60,15 @@ check(document.getElementById("device-empty").hidden===true,
 
 button("automations","mobile").click();
 active("automations");
+check(document.activeElement===document.getElementById("automations-title"),
+  "mobile navigation focuses destination heading");
 check(document.getElementById("page-automations").textContent.includes("No triggers connected"),
   "routines remain explicitly non-executable");
 
 button("privacy").click();
 active("privacy");
+check(document.activeElement===document.getElementById("privacy-title"),
+  "privacy navigation focuses destination heading");
 check(document.getElementById("page-privacy").textContent.includes("No live connections"),
   "privacy disclosure remains visible");
 
@@ -86,6 +92,8 @@ check(document.documentElement.style.getPropertyValue("--gc-v1-color-primary")!=
 
 button("overview").click();
 active("overview");
+check(document.activeElement===document.getElementById("overview-title"),
+  "returning to overview focuses heading");
 const output=document.createElement("output");
 output.id="gc-preview-test-output";
 output.setAttribute("aria-label","Synthetic browser interaction test result");
