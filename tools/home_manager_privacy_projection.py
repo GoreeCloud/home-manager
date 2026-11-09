@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from collections.abc import Callable, Collection
 from typing import Any, Final
 
@@ -65,7 +66,7 @@ def project_authorized_entity(
 
     Ordering: validate consent scope -> active consent -> per-user POLICY_READ
     -> single state lookup -> trusted scalar disclosure approval -> active
-    consent recheck -> minimal serialization.
+    consent/permission recheck -> minimal serialization.
     No bulk state enumeration, metadata, auth tokens, network, or storage.
     """
     if not _valid_id(entity_id):
@@ -89,7 +90,7 @@ def project_authorized_entity(
         if (
             not isinstance(value, str)
             or len(value) > MAX_STATE_CHARS
-            or any(ord(char) < 32 or ord(char) == 127 for char in value)
+            or any(unicodedata.category(char).startswith("C") for char in value)
         ):
             raise EntityNotVisible
         # All state strings can be sensitive. Disclose only with an explicit,
@@ -97,6 +98,11 @@ def project_authorized_entity(
         if disclosure_is_approved(entity_id, value) is not True:
             raise EntityNotVisible
         if consent_is_active() is not True:
+            raise EntityNotVisible
+        # Best-effort revocation check after the disclosure callback; the
+        # policy may be revoked between initial authorization and output.
+        # This does NOT make asynchronous permission/consent changes atomic.
+        if user.permissions.check_entity(entity_id, POLICY_READ) is not True:
             raise EntityNotVisible
 
         # Never read .as_dict_json, .attributes, timestamps or context.
