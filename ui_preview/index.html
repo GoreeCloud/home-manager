@@ -48,14 +48,14 @@
         </div>
       </header>
 
-      <main id="content" tabindex="-1">
+      <main id="content" tabindex="-1" aria-labelledby="overview-title">
         <div class="demo-disclosure" role="status"><span class="disclosure-symbol" aria-hidden="true">●</span><strong>Design preview</strong><span>Everything shown is synthetic. No account, device, sensor, or home system is connected.</span></div>
 
         <section id="page-overview" class="view-panel" aria-labelledby="overview-title">
           <div class="hero">
             <div class="hero-content">
               <div class="eyebrow"><span class="spark" aria-hidden="true">✳</span> YOUR SPACE AT A GLANCE</div>
-              <h1 id="overview-title">A calmer way to<br><em>feel at home.</em></h1>
+              <h1 id="overview-title" tabindex="-1">A calmer way to<br><em>feel at home.</em></h1>
               <p>A unified view of the details that matter. This is a safe, interactive design study—not a live home controller.</p>
               <button type="button" class="primary-action" data-open-section="devices">Explore demo devices <span aria-hidden="true">↗</span></button>
             </div>
@@ -84,15 +84,15 @@
         </section>
 
         <section id="page-devices" class="view-panel" aria-labelledby="devices-title" hidden>
-          <div class="inner-page-heading"><p class="eyebrow muted">YOUR SPACES · SIMULATED</p><h1 id="devices-title">Devices, simplified.</h1><p>Explore the proposed inventory experience using fictional example devices. Nothing here can control your home.</p></div>
+          <div class="inner-page-heading"><p class="eyebrow muted">YOUR SPACES · SIMULATED</p><h1 id="devices-title" tabindex="-1">Devices, simplified.</h1><p>Explore the proposed inventory experience using fictional example devices. Nothing here can control your home.</p></div>
           <div class="toolbar"><label class="search-field" for="device-search"><span class="search-symbol" aria-hidden="true">⌕</span><span class="visually-hidden">Search demo devices</span><input id="device-search" type="search" autocomplete="off" placeholder="Search sample devices"></label><label class="room-select-label" for="room-filter"><span class="visually-hidden">Filter demo devices by room</span><select id="room-filter"><option>All rooms</option><option>Living area</option><option>Studio</option></select></label></div>
-          <div class="list-summary"><strong id="device-count">6 sample devices</strong><span>Illustrative data only</span></div>
-          <div id="device-results" class="device-list" aria-live="polite"></div>
+          <div class="list-summary"><strong id="device-count" role="status" aria-live="polite" aria-atomic="true">6 sample devices</strong><span>Illustrative data only</span></div>
+          <div id="device-results" class="device-list"></div>
           <p id="device-empty" class="empty-state" hidden>No matching example devices. Try another search or room.</p>
         </section>
 
         <section id="page-automations" class="view-panel" aria-labelledby="automations-title" hidden>
-          <div class="inner-page-heading"><p class="eyebrow muted">IMAGINE THE POSSIBILITIES</p><h1 id="automations-title">Routines with intention.</h1><p>Illustrative ideas for future automations. None is installed, scheduled, or executable in this design preview.</p></div>
+          <div class="inner-page-heading"><p class="eyebrow muted">IMAGINE THE POSSIBILITIES</p><h1 id="automations-title" tabindex="-1">Routines with intention.</h1><p>Illustrative ideas for future automations. None is installed, scheduled, or executable in this design preview.</p></div>
           <div class="routine-grid">
             <article class="routine-card"><span class="routine-icon" aria-hidden="true">☀</span><span class="routine-pill">CONCEPT ONLY</span><h2>Gentle mornings</h2><p>A considered transition into the day with light and comfort settings.</p><div class="routine-meta">No triggers connected <span aria-hidden="true">↗</span></div></article>
             <article class="routine-card"><span class="routine-icon" aria-hidden="true">☾</span><span class="routine-pill">CONCEPT ONLY</span><h2>Evening unwind</h2><p>Bring common activities together, while retaining manual control.</p><div class="routine-meta">No triggers connected <span aria-hidden="true">↗</span></div></article>
@@ -100,7 +100,7 @@
         </section>
 
         <section id="page-privacy" class="view-panel" aria-labelledby="privacy-title" hidden>
-          <div class="inner-page-heading"><p class="eyebrow muted">TRANSPARENCY BY DESIGN</p><h1 id="privacy-title">Know what stays private.</h1><p>The preview contains only built-in fictional fixtures. These design goals are not proof that production privacy or cybersecurity integrations are implemented.</p></div>
+          <div class="inner-page-heading"><p class="eyebrow muted">TRANSPARENCY BY DESIGN</p><h1 id="privacy-title" tabindex="-1">Know what stays private.</h1><p>The preview contains only built-in fictional fixtures. These design goals are not proof that production privacy or cybersecurity integrations are implemented.</p></div>
           <div class="privacy-grid"><article><span class="privacy-mark" aria-hidden="true">◇</span><h2>No live connections</h2><p>There are no backend calls, home devices, remote sessions, account tokens, or telemetry endpoints in this preview.</p></article><article><span class="privacy-mark" aria-hidden="true">◈</span><h2>No stored household data</h2><p>The preview's fictional data is bundled in source. Appearance choices are session-only and not persisted.</p></article><article><span class="privacy-mark" aria-hidden="true">✧</span><h2>Consent comes first</h2><p>Actual device discovery and privileged recovery require separate product permissions and tested safeguards.</p></article></div>
           <div class="privacy-notice"><strong>Engineering boundary</strong><p>GoreeShield privacy, Wardveil cybersecurity, GoreeCloud Mesh integration, and GoreeCloud Identity remain release gates. This page does not connect to or replace Home Assistant authentication.</p></div>
         </section>
