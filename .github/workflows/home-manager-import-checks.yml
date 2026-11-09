@@ -467,9 +467,9 @@ jobs:
             --archive "$RUNNER_TEMP/gc-ui-foundations/goreecloud-gc-ui-1.0.1.tgz" \
             --report "$RUNNER_TEMP/gc-ui-foundations/asset-report.json"
   gc-ui-home-manager-preview:
-    # A synthetic browser-only concept. First-party review/manual; zero accounts,
-    # household hardware, network services, production credentials or releases.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108' || github.head_ref == 'test/ha-readonly-websocket-contract-20261108' || github.head_ref == 'test/ha-entity-rest-minimization-20261108' || github.head_ref == 'fix/gc-ui-preview-page-focus-20261108' || github.head_ref == 'test/gc-ui-narrow-rtl-20261108'))
+    # Synthetic browser-only preview on main push, first-party review or manual.
+    # No household hardware, network APIs, accounts, credentials or deployments.
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'GoreeCloud/home-manager' && (github.head_ref == 'feat/gc-ui-home-manager-preview-20261108' || github.head_ref == 'test/gc-ui-preview-browser-interactions-20261108' || github.head_ref == 'test/ha-readonly-websocket-contract-20261108' || github.head_ref == 'test/ha-entity-rest-minimization-20261108' || github.head_ref == 'fix/gc-ui-preview-page-focus-20261108' || github.head_ref == 'test/gc-ui-narrow-rtl-20261108' || github.head_ref == 'ci/gc-ui-main-browser-gate-20261108'))
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
